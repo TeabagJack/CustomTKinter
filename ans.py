@@ -11,11 +11,6 @@ app = ctk.CTk()
 app.title('Ans - Exam AI Engine')
 app.geometry('1440x900')
 
-
-
-
-
-
 # New top frame for the image and user details
 top_frame = ctk.CTkFrame(app, corner_radius=10, fg_color='white')
 top_frame.pack(fill='x', expand=False, padx=0, pady=0)
@@ -148,9 +143,6 @@ text_widget.config(yscrollcommand=scrollbar.set)
 # Create a frame for the text box and buttons
 bottom_frame = ctk.CTkFrame(content_frame, corner_radius=10, fg_color='white')
 bottom_frame.pack(padx=10, pady=10, fill='x')
-
-
-
 
 # Create a single-line text entry widget
 file_entry = ctk.CTkEntry(bottom_frame, fg_color='white', placeholder_text="enter your question here to add.")
