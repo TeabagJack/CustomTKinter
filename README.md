@@ -12,4 +12,9 @@ step 2.
 pip install tk
 ```
 
+step 3. 
+```shell
+pip install packaging
+```
+
 And you're good to run it.
