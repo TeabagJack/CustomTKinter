@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 
-
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme('blue')
 
@@ -27,8 +26,6 @@ user_icon_label.pack(side='right', padx=10, pady=10)
 
 user_details = ctk.CTkLabel(top_frame, text="Teacher Name\nProofs Teacher", font=("Arial", 10), anchor='e')
 user_details.pack(side='right', padx=10, pady=10)
-
-
 
 main_frame = ctk.CTkFrame(app, corner_radius=10, fg_color='#C6BFD9')
 main_frame.pack(fill='both', expand=True, padx=0, pady=0)
