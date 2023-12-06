@@ -2,6 +2,7 @@ class roundUsing:
     def __init__(self):
         self.hashmap = {}
 
+    
     def add(self,Question,Rubric="",Answer=""):
         if Question in self.hashmap:
             if  Rubric in self.hashmap[Question]:
@@ -59,15 +60,16 @@ def main():
     #         },
     #         'middle_key4': {
     #             'inner_key7': 'value127',
-    #             'inner_key8': 'value128'
+    #             'inner_key8': 'value128'-
     #         }
     #     }
-    #     }
-    
+    #     }    
     # print3DHashmap(three_d_nested_hashmap)
 
     # Add new questions, rubrics, and answers
     round_instance.add("What is your name?","Rubric for the question.","John Doe")
+    round_instance.add("What is fish?","Rubric 1 for question 1.","animal")
+    round_instance.add("what is fish?","Rubric 2 for question 1","fish is a kind of animal")
     print("Before remove ")
     print3DHashmap(round_instance.getHashmap())
     round_instance.remove("What is your name?",Rubric="Rubric for the question.")
