@@ -10,6 +10,10 @@ app = ctk.CTk()
 app.title('Ans - Exam AI Engine')
 app.geometry('1440x900')
 
+
+######################## V=Variables to show in gui ######################
+
+
 # New top frame for the image and user details
 top_frame = ctk.CTkFrame(app, corner_radius=10, fg_color='white')
 top_frame.pack(fill='x', expand=False, padx=0, pady=0)
