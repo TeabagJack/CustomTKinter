@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
+from labeling_model import classify_sentence, classifier
 from toolbag import roundUsing
 
 ctk.set_appearance_mode("light")
@@ -62,7 +63,13 @@ def hide_labels_task():
 def show_labels_task():
     label_menu.pack(side='right', fill='y', padx=10, pady=10)
     show_labels_button.configure(text="Hide Labels", command=hide_labels_task)
+
+def classify_labels_per_question():
+    labels = ["math", "history", "Arithmetic"]
+    sentence = "The square root of four is two"
+    answer = classify_sentence(sentence, labels, classifier, 0.7, True)
     
+    print(answer)
 
 # label Description
 label_description = ctk.CTkLabel(label_menu, text="Labels", font=("Arial", 20, "bold"), text_color='#1B0166')
@@ -183,7 +190,7 @@ save_btn.pack(side='left')
 question_frame = ctk.CTkFrame(content_frame, corner_radius=10, fg_color='white', border_color='grey', border_width=1)
 question_frame.pack(side='bottom', fill='x', padx=10, pady=10)
 
-button_question = ctk.CTkButton(question_frame, text="Q1", command=button_task, fg_color='#1B0166')
+button_question = ctk.CTkButton(question_frame, text="Q1", command=classify_labels_per_question, fg_color='#1B0166')
 button_question1 = ctk.CTkButton(question_frame, text="Q2", command=button_task, fg_color='#1B0166')
 button_question2 = ctk.CTkButton(question_frame, text="Q3", command=button_task, fg_color='#1B0166')
 button_question.pack(side='left', padx=10, pady=10)
