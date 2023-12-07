@@ -3,28 +3,29 @@ class roundUsing:
         self.hashmap = {}
 
     
-    def add(self,Question,Rubric="",Answer=""):
+    def add(self,Question,Answer="",Rubric=""):
         if Question in self.hashmap:
-            if  Rubric in self.hashmap[Question]:
-                self.hashmap[Question][Rubric][Answer] = [Question,Rubric,Answer]
+            if  Answer in self.hashmap[Question]:
+                self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric]
             else:
-                self.hashmap[Question][Rubric] = {}
-                self.add(Question,Rubric,Answer)
+                self.hashmap[Question][Answer] = {}
+                self.add(Question,Answer,Rubric)
         else:
             self.hashmap[Question] = {}
-            self.add(Question,Rubric,Answer)
+            self.hashmap[Question]['Lable'] = ["label1","label2","label3"]
+            self.add(Question,Answer,Rubric)
     
-    def remove(self,Question,Rubric="",Answer=""):
-        if Rubric == "":
+    def remove(self,Question,Answer="",Rubric=""):
+        if Answer == "":
             del self.hashmap[Question]
         else:
-            if Answer == "":
-                del self.hashmap[Question][Rubric]
+            if Rubric == "":
+                del self.hashmap[Question][Answer]
             else:
-                del self.hashmap[Question][Rubric][Answer]    
+                del self.hashmap[Question][Answer][Rubric]    
 
-    def addStartAndEnd(self,Question,Rubric,Answer,i,j):
-        self.hashmap[Question][Rubric][Answer] = [Question,Rubric,Answer,i,j]
+    def addStartAndEnd(self,Question,Answer,Rubric,i,j):
+        self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric,i,j]
 
     def getHashmap(self):
         return self.hashmap
@@ -34,8 +35,14 @@ def print3DHashmap(hashmap):
         print(f"Outer Key: {outer_key}")
         for middle_key, inner_dict in middle_dict.items():
             print(f"Middle Key: {middle_key}")
-            for inner_key, value in inner_dict.items():
-                print(f"Inner Key: {inner_key}, Value: {value}")
+            if isinstance(inner_dict,dict):
+                for inner_key, value in inner_dict.items():
+                    print(f"Inner Key: {inner_key}, Value: {value}")
+            elif isinstance(inner_dict,list):
+                for element in inner_dict:
+                    print(f"inner_element: {element}")
+            else:
+                print(inner_dict)
 
 
 def main():
@@ -67,12 +74,12 @@ def main():
     # print3DHashmap(three_d_nested_hashmap)
 
     # Add new questions, rubrics, and answers
-    round_instance.add("What is your name?","Rubric for the question.","John Doe")
-    round_instance.add("What is fish?","Rubric 1 for question 1.","animal")
-    round_instance.add("what is fish?","Rubric 2 for question 1","fish is a kind of animal")
+    round_instance.add("What is your name?","John Doe","Rubric for the question.")
+    round_instance.add("What is fish?","animal","Rubric 1 for question 1.")
+    round_instance.add("what is fish?","fish is a kind of animal","Rubric 2 for question 1")
     print("Before remove ")
     print3DHashmap(round_instance.getHashmap())
-    round_instance.remove("What is your name?",Rubric="Rubric for the question.")
+    round_instance.remove("What is your name?",Answer="John Doe")
     print("After remove ")
     print3DHashmap(round_instance.getHashmap())
 
