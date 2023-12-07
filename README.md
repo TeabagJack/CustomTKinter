@@ -18,3 +18,5 @@ pip install packaging
 ```
 
 And you're good to run it.
+
+Tip: enabling Developer Mode in your computer will prevent the BERT Model's duplication when running the code multiple times. 
