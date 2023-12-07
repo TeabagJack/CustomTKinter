@@ -28,11 +28,11 @@ class roundUsing:
             else:
                 del self.hashmap[Question][Answer][Rubric]    
 
-    def addStartAndEnd(self, Question, Rubric, Answer):
+    def addStartAndEnd(self, Question, Answer, Rubric):
         extract, start, end = self.bert.get_model_output(
-            student_answer=Answer, requirement=Rubric
+            student_answer=Rubric, requirement=Answer
         )
-        self.hashmap[Question][Rubric][Answer] = [Question, Rubric, Answer, start, end]
+        self.hashmap[Question][Answer][Rubric] = [Question, Answer, Rubric, start, end]
 
     def getHashmap(self):
         return self.hashmap
@@ -84,7 +84,6 @@ def main():
     # Add new questions, rubrics, and answers
 
     questions = ["Describe World War Two."]
-    rubrics = ["When did the war start?", "Which countries were in the Allies?"]
     answers = [
         """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
         including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
@@ -100,14 +99,14 @@ def main():
         and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
         war."""
     ]
-
+    rubrics = ["When did the war start?", "Which countries were in the Allies?"]
     # add to hashmap
     for q in questions:
-        for r in rubrics:
-            for a in answers:
+        for a in answers:
+            for r in rubrics:
                 round_instance.add(Question=q, Rubric=r, Answer=a)
-                round_instance.addStartAndEnd(q, r, a)
+                round_instance.addStartAndEnd(q, a, r)
 
-
+    print3DHashmap(round_instance.getHashmap())
 if __name__ == "__main__":
     main()
