@@ -2,7 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
-from labeling_model import classify_sentence, classifier
+#from labeling_model import classify_sentence, classifier
 from toolbag import roundUsing
 
 ctk.set_appearance_mode("light")
