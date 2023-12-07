@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
+from toolbag import roundUsing
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme('blue')
@@ -10,8 +11,14 @@ app = ctk.CTk()
 app.title('Ans - Exam AI Engine')
 app.geometry('1440x900')
 
+roundUsing_instance = roundUsing()
+##init hashmap
+roundUsing_instance.add("Question1","Answer1","Rubric1")
+roundUsing_instance.add("Question1","Answer1","Rubric2")
+roundUsing_instance.add("Question1","Answer2","Rubric1")
 
 ######################## V=Variables to show in gui ######################
+hashmap = roundUsing_instance.getHashmap()
 
 
 # New top frame for the image and user details
@@ -62,9 +69,9 @@ label_description = ctk.CTkLabel(label_menu, text="Labels", font=("Arial", 20, "
 label_description.pack(padx=60, pady=10, anchor='n')
 
 # Create a list of labels to be displayed in the side menu
-labels = ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5', 'Label 6']
+rubrics = ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5', 'Label 6']
 
-for label in labels:
+for label in rubrics:
     lbl = ctk.CTkLabel(label_menu, text=label, cursor="hand2", text_color='#1B0166')
     lbl.pack(pady=10, padx=30)
 
@@ -233,11 +240,16 @@ def create_menu_option(parent, text, color_value):
     return label
 
 # Example usage of create_menu_option
-labels = [('Option 1', 'green'), ('Option 2', 'orange'), ('Option 3', 'red'), ('Option 4', 'green'), ('Option 5', 'orange'), ('Option 6', 'red')]
+rubrics = []
+for keys in roundUsing_instance.getHashmap()['Question1']['Answer1']:
+    colour = 'green'#TODO: from Alvaro's method
+    rubrics.append((keys,colour))
+## test case
+#rubrics = [('Option 1', 'green'), ('Option 2', 'orange'), ('Option 3', 'red'), ('Option 4', 'green'), ('Option 5', 'orange'), ('Option 6', 'red')]
 label_widgets = []
 
 # When creating labels, bind them to the new click event handler
-for text, color in labels:
+for text, color in rubrics:
     lbl = create_menu_option(side_menu, text, color)
     lbl.bind("<Button-1>", lambda event, lbl=lbl: on_label_click(event, lbl))
     label_widgets.append(lbl)
