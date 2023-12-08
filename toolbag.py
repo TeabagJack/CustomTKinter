@@ -1,4 +1,5 @@
 from bertModel import bertModel
+import torch
 import csv
 
 
@@ -14,7 +15,13 @@ class roundUsing:
                 extract, start, end = self.bert.get_model_output(
                     student_answer=Rubric, requirement=Answer
                 )
-                self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric,start.item(),end.item()]
+                ##check the index is tensor format or not, in case some result is empty or No answer
+                if torch.is_tensor(start):
+                    start = start.item()
+                if torch.is_tensor(end):
+                    end = end.item()
+
+                self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric,start,end]
             else:
                 self.hashmap[Question][Answer] = {}
                 self.add(Question,Answer,Rubric)
