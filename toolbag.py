@@ -1,4 +1,6 @@
 from bertModel import bertModel
+import torch
+import csv
 
 
 class roundUsing:
@@ -10,13 +12,26 @@ class roundUsing:
     def add(self,Question,Answer="",Rubric=""):
         if Question in self.hashmap:
             if  Answer in self.hashmap[Question]:
-                self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric]
+                extract, start, end = self.bert.get_model_output(
+                    student_answer=Rubric, requirement=Answer
+                )
+                ##check the index is tensor format or not, in case some result is empty or No answer
+                if torch.is_tensor(start):
+                    start = start.item()
+                else:
+                    start = ''
+                if torch.is_tensor(end):
+                    end = end.item()
+                else:
+                    end = ''
+
+                self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric,start,end]
             else:
                 self.hashmap[Question][Answer] = {}
                 self.add(Question,Answer,Rubric)
         else:
             self.hashmap[Question] = {}
-            self.hashmap[Question]['Lable'] = ["label1","label2","label3"]
+            self.hashmap[Question]['Lable'] = ["label1","label2","label3"]#TODO: 
             self.add(Question,Answer,Rubric)
     
     def remove(self,Question,Answer="",Rubric=""):
@@ -28,12 +43,13 @@ class roundUsing:
             else:
                 del self.hashmap[Question][Answer][Rubric]    
 
-    def addStartAndEnd(self, Question, Answer, Rubric):
-        extract, start, end = self.bert.get_model_output(
-            student_answer=Rubric, requirement=Answer
-        )
-        self.hashmap[Question][Answer][Rubric] = [Question, Answer, Rubric, start, end]
-
+    ##################################never be used#########################################
+    # def addStartAndEnd(self, Question, Answer, Rubric):                                  #
+    #     extract, start, end = self.bert.get_model_output(                                #
+    #         student_answer=Rubric, requirement=Answer                                    #
+    #     )                                                                                #
+    #     self.hashmap[Question][Answer][Rubric] = [Question, Answer, Rubric, start, end]  #
+    ########################################################################################
     def getHashmap(self):
         return self.hashmap
 
@@ -51,6 +67,14 @@ def print3DHashmap(hashmap):
                     print(f"inner_element: {element}")
             else:
                 print(inner_dict)
+
+def init_hashmap(file_path,round_instance):
+    with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile)
+        headers = next(csvreader)  # Assuming the first row contains headers
+        for row in csvreader:
+            round_instance.add(row[0],row[1],row[2])
+
 
 
 def main():
@@ -83,6 +107,8 @@ def main():
 
     # Add new questions, rubrics, and answers
 
+    ###################################### highlight part test################################
+    ############### workable test cases
     questions = ["Describe World War Two."]
     answers = [
         """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
@@ -100,12 +126,20 @@ def main():
         war."""
     ]
     rubrics = ["When did the war start?", "Which countries were in the Allies?"]
+
+    ######### simple answer and rubrics test cases
+    # questions = ["What are the pros and cons of online education?"]
+    # answers = ["Convenience and flexibility","Interaction challenges"]
+    # rubrics = ["Clear and concise","Relevance to the question"]
+
     # add to hashmap
     for q in questions:
         for a in answers:
             for r in rubrics:
                 round_instance.add(Question=q, Rubric=r, Answer=a)
-                round_instance.addStartAndEnd(q, a, r)
+
+    #######################################init hashmap test##################################
+    # init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
 if __name__ == "__main__":
