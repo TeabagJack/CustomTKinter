@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 from labeling_model import classify_sentence, classifier
-from toolbag import roundUsing, init_hashmap
+from toolbag import roundUsing
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme('blue')
