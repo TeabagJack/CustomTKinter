@@ -1,4 +1,5 @@
 from bertModel import bertModel
+import csv
 
 
 class roundUsing:
@@ -52,6 +53,14 @@ def print3DHashmap(hashmap):
             else:
                 print(inner_dict)
 
+def init_hashmap(file_path,round_instance):
+    with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile)
+        headers = next(csvreader)  # Assuming the first row contains headers
+        for row in csvreader:
+            round_instance.add(row[0],row[1],row[2])
+
+
 
 def main():
     # Create an instance of the RoundUsing class
@@ -83,29 +92,33 @@ def main():
 
     # Add new questions, rubrics, and answers
 
-    questions = ["Describe World War Two."]
-    answers = [
-        """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
-        including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
-        Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to 
-        declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
-        Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
-        suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
-        of the United Nations.""",
+    ###################################### highlight part test################################
+    # questions = ["Describe World War Two."]
+    # answers = [
+    #     """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+    #     including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
+    #     Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to 
+    #     declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
+    #     Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
+    #     suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
+    #     of the United Nations.""",
 
-        """World War 2 was a big war that happened a long time ago. I think it started because some countries were 
-        not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember 
-        there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, 
-        and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
-        war."""
-    ]
-    rubrics = ["When did the war start?", "Which countries were in the Allies?"]
-    # add to hashmap
-    for q in questions:
-        for a in answers:
-            for r in rubrics:
-                round_instance.add(Question=q, Rubric=r, Answer=a)
-                round_instance.addStartAndEnd(q, a, r)
+    #     """World War 2 was a big war that happened a long time ago. I think it started because some countries were 
+    #     not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember 
+    #     there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, 
+    #     and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
+    #     war."""
+    # ]
+    # rubrics = ["When did the war start?", "Which countries were in the Allies?"]
+    # # add to hashmap
+    # for q in questions:
+    #     for a in answers:
+    #         for r in rubrics:
+    #             round_instance.add(Question=q, Rubric=r, Answer=a)
+    #             round_instance.addStartAndEnd(q, a, r)
+
+    #######################################init hashmap test##################################
+    init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
 if __name__ == "__main__":
