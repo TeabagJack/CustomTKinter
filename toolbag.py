@@ -1,12 +1,17 @@
 from bertModel import bertModel
 import torch
 import csv
+import labeling_model as lm
+from transformers import pipeline
+
 
 
 class roundUsing:
-    def __init__(self):
+    def __init__(self,label_threshhold = 0.6):
         self.hashmap = {}
         self.bert = bertModel()
+        self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
+        self.threshHold = label_threshhold
 
     
     def add(self,Question,Answer="",Rubric=""):
@@ -31,7 +36,7 @@ class roundUsing:
                 self.add(Question,Answer,Rubric)
         else:
             self.hashmap[Question] = {}
-            self.hashmap[Question]['Lable'] = ["label1","label2","label3"]#TODO: 
+            self.hashmap[Question]['Lable'] = getLabels(Question,self.list,self.threshHold)
             self.add(Question,Answer,Rubric)
     
     def remove(self,Question,Answer="",Rubric=""):
@@ -75,6 +80,17 @@ def init_hashmap(file_path,round_instance):
         for row in csvreader:
             round_instance.add(row[0],row[1],row[2])
 
+def read_labelPredictionForm(file_path):
+    with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile)
+        list = next(csvreader)
+    return list
+
+def getLabels(question,list,threshHold):
+    classifier = pipeline("zero-shot-classification", model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli")
+    labels = lm.classify_sentence(question, list, classifier, threshHold, True)[0][:3]
+    return labels
+        
 
 
 def main():
@@ -133,13 +149,13 @@ def main():
     # rubrics = ["Clear and concise","Relevance to the question"]
 
     # add to hashmap
-    for q in questions:
-        for a in answers:
-            for r in rubrics:
-                round_instance.add(Question=q, Rubric=r, Answer=a)
+    # for q in questions:
+    #     for a in answers:
+    #         for r in rubrics:
+    #             round_instance.add(Question=q, Rubric=r, Answer=a)
 
     #######################################init hashmap test##################################
-    # init_hashmap("data\QARtest.csv",round_instance)
+    init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
 if __name__ == "__main__":
