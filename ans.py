@@ -53,6 +53,9 @@ main_frame.pack(fill='both', expand=True, padx=0, pady=0)
 side_menu = ctk.CTkFrame(main_frame, corner_radius=10, fg_color='white', border_color='grey', border_width=2, width=200)
 side_menu.pack(side='left', fill='y',padx=10, pady=10)
 
+rubric_title = ctk.CTkLabel(side_menu, text="Rubrics", font=("Arial", 20, "bold"), text_color='#1B0166')
+rubric_title.pack(padx=10, pady=(10, 5))  # Adjust padding as needed
+
 search_var = tk.StringVar()
 search_entry = ctk.CTkEntry(side_menu, textvariable=search_var, placeholder_text="Search")
 search_entry.pack(padx=10, pady=10, fill='x')
@@ -77,12 +80,6 @@ def hide_labels_task():
 def show_labels_task():
     label_menu.pack(side='right', fill='y', padx=10, pady=10)
     show_labels_button.configure(text="Hide Labels", command=hide_labels_task)
-    
-def classify_labels_per_question():
-    labels = ["math", "history", "Arithmetic"]
-    sentence = "The square root of four is two"
-    answer = classify_sentence(sentence, labels, classifier, 0.7, True)
-    print(answer)
     
 
 label_description = ctk.CTkLabel(label_menu, text="Labels", font=("Arial", 20, "bold"), text_color='#1B0166')
@@ -180,7 +177,7 @@ def create_colored_circle(parent, color_value):
     canvas.create_oval(5, 5, 15, 15, fill=color, outline=color)
     return canvas
 
-def create_rubric_option(parent, text, color_value):
+def create_rubric_option(parent, text, color_value, command):
     frame = ctk.CTkFrame(parent, corner_radius=10, fg_color='white', width=200)
     frame.pack(pady=2, padx=10, fill='x')
 
@@ -189,34 +186,54 @@ def create_rubric_option(parent, text, color_value):
 
     label = ctk.CTkLabel(frame, text=text, cursor="hand2", width=200-30)
     label.pack(side='left', padx=5)
+    label.bind("<Button-1>", command)
 
     return label
 
 
-def update_rubrics(question_text, rubric_frame, hashmap):
-    question_data = hashmap.get(question_text, {})
-    
-    for widget in rubric_frame.winfo_children():
-        widget.destroy()
+def highlight_text(text_widget, start, end):
+    text_widget.tag_add("highlight", start, end)
+    text_widget.tag_config("highlight", background="yellow")
 
+def update_rubrics(question_text, rubric_frame, hashmap, text_widget):
+    question_data = hashmap.get(question_text, {})
     unique_rubrics = set()
-    for answer_data in question_data.values():
-        if isinstance(answer_data, dict):
-            unique_rubrics.update(answer_data.keys())
+
+    for answer, rubrics in question_data.items():
+        if answer != 'Lable':
+            unique_rubrics.update(rubrics.keys())
 
     for rubric in unique_rubrics:
         if rubric != 'Lable':
-            color_value = 'green' 
-            rubric_label = create_rubric_option(rubric_frame, rubric, color_value)
+            color_value = 'green'
+            start, end = "", "" 
+            for answer_data in rubrics.values():
+                start, end = answer_data[-2], answer_data[-1]
+                break
+
+            command = lambda event, s=start, e=end: highlight_text(text_widget, s, e)
+            rubric_label = create_rubric_option(rubric_frame, rubric, color_value, command)
 
 
-def update_question_labels_and_answers(question_number, question_text, bold_label, color_label, text_widget, rubric_frame, hashmap, buttons):
+
+def update_labels_for_question(question_text, label_menu, hashmap):
+    question_data = hashmap.get(question_text, {})
+    labels = question_data.get("Lable", [])
+    for widget in label_menu.winfo_children():
+        widget.destroy()
+
+    for label_text in labels:
+        label = ctk.CTkLabel(label_menu, text=label_text, cursor="hand2", text_color='#1B0166')
+        label.pack(pady=10, padx=30)
+        
+        
+
+def update_question_labels_and_answers(question_number, question_text, bold_label, color_label, text_widget, rubric_frame, label_menu, hashmap, buttons):
     global current_selected_button
     
     for btn in buttons:
         btn.configure(fg_color="#1B0166")
 
-    # Update the appearance of the selected button
     current_selected_button = buttons[question_number - 1]
     current_selected_button.configure(fg_color="#4C9A2A")
     
@@ -234,8 +251,9 @@ def update_question_labels_and_answers(question_number, question_text, bold_labe
 
     text_widget.delete('1.0', 'end')
     text_widget.insert('1.0', formatted_answers)
-
-    update_rubrics(question_text, rubric_frame, hashmap)
+    
+    update_labels_for_question(question_text, label_menu, hashmap)
+    update_rubrics(question_text, rubric_frame, hashmap, text_widget)
 
 
 
@@ -243,7 +261,7 @@ def update_question_labels_and_answers(question_number, question_text, bold_labe
 def create_question_buttons(parent_frame, questions, bold_label, color_label, text_widget, rubric_frame, hashmap, fg_color='#1B0166', button_width=100, button_height=30):
     buttons = []
     for i, question_text in enumerate(questions, start=1):
-        button_command = lambda i=i, question_text=question_text: update_question_labels_and_answers(i, question_text, bold_label, color_label, text_widget, rubric_frame, hashmap, buttons)
+        button_command = lambda i=i, question_text=question_text: update_question_labels_and_answers(i, question_text, bold_label, color_label, text_widget, rubric_frame, label_menu, hashmap, buttons)
         button = ctk.CTkButton(parent_frame, text=f"Q{i}", command=button_command, fg_color=fg_color, width=button_width, height=button_height)
         button.pack(side='left', padx=10, pady=10)
         buttons.append(button)

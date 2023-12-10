@@ -3,7 +3,7 @@ import torch
 import csv
 import labeling_model as lm
 from transformers import pipeline
-
+import pickle, os
 
 
 class roundUsing:
@@ -13,6 +13,14 @@ class roundUsing:
         self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
         self.threshHold = label_threshhold
 
+
+    def save_hashmap_to_cache(self, cache_file):
+        with open(cache_file, 'wb') as f:
+            pickle.dump(self.hashmap, f)
+
+    def load_hashmap_from_cache(self, cache_file):
+        with open(cache_file, 'rb') as f:
+            self.hashmap = pickle.load(f)
     
     def add(self,Question,Answer="",Rubric=""):
         if Question in self.hashmap:
@@ -73,12 +81,17 @@ def print3DHashmap(hashmap):
             else:
                 print(inner_dict)
 
-def init_hashmap(file_path,round_instance):
-    with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
-        csvreader = csv.reader(csvfile)
-        headers = next(csvreader)  # Assuming the first row contains headers
-        for row in csvreader:
-            round_instance.add(row[0],row[1],row[2])
+def init_hashmap(file_path, round_instance, cache_file='hashmap_cache.pkl'):
+    if os.path.exists(cache_file):
+        round_instance.load_hashmap_from_cache(cache_file)
+    else:
+        with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+            csvreader = csv.reader(csvfile)
+            headers = next(csvreader)
+            for row in csvreader:
+                round_instance.add(row[0], row[1], row[2])
+        round_instance.save_hashmap_to_cache(cache_file)
+
 
 def read_labelPredictionForm(file_path):
     with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
@@ -143,19 +156,19 @@ def main():
     ]
     rubrics = ["When did the war start?", "Which countries were in the Allies?"]
 
-    ######### simple answer and rubrics test cases
-    # questions = ["What are the pros and cons of online education?"]
-    # answers = ["Convenience and flexibility","Interaction challenges"]
-    # rubrics = ["Clear and concise","Relevance to the question"]
+    ######## simple answer and rubrics test cases
+    questions = ["What are the pros and cons of online education?"]
+    answers = ["Convenience and flexibility","Interaction challenges"]
+    rubrics = ["Clear and concise","Relevance to the question"]
 
     # add to hashmap
-    # for q in questions:
-    #     for a in answers:
-    #         for r in rubrics:
-    #             round_instance.add(Question=q, Rubric=r, Answer=a)
+    for q in questions:
+        for a in answers:
+            for r in rubrics:
+                round_instance.add(Question=q, Rubric=r, Answer=a)
 
     #######################################init hashmap test##################################
-    init_hashmap("data\QARtest.csv",round_instance)
+    # init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
 if __name__ == "__main__":
