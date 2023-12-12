@@ -12,7 +12,6 @@ app = ctk.CTk()
 app.title('Ans - Exam AI Engine')
 app.geometry('1440x900')
 current_selected_button = None 
-
 ######################## V=Variables to show in gui ######################
 
 # roundUsing_instance = roundUsing()
@@ -28,45 +27,62 @@ roundUsing_instance = roundUsing()
 questions = [
     "Describe World War Two.", 
     "Translate the following sentence into a formula of epistemic logic, using appropriate translation keys: Alice does not know whether Bob knows that she likes sailing, and Bob knows whether Alice likes sailing",
-    "Describe the most important characteristics of a rational agent."
-    
+    "Describe the most important characteristics of a rational agent.",
+    "What did William Smith cross about 50 times?",
+    "Who captured Port Beausejour?",
+    "How far from the Yard is the Quad located?",
+    "What is American Union Law a body of?",
+    "What conjecture holds that there are always a prime number between n and 2n?",
+    "What did Andrew Johnson undertake when he was 17?",
+    "What is the highest mountain in the British Isles?",
+    "What is the capital of Australia?",
+    "What are the colors of the five Olympic rings?",
+    "Who was the first woman to win a Nobel Prize?",
+    "What is the main ingredient in a Brick?",
+    "What planet is closest to the sun?",
+    "What did the Romans call Scotland?",
+    "Who was Henry VIII's first wife?",
+    "What is the diameter of Earth?",
+    "Where would you find the Sea of Tranquility?",
+    "Who invented the telephone?",
+    "What temperature does water boil at?",
 
 ]
 
 
 answers = [
     [
-        """World War II, which started on September 1, 1939, was a global conflict primarily involving the Allies, 
-        including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
-        Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to 
-        declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
-        Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
-        suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
-        of the United Nations.""",
-        """World War 2 was a big war that happened a long time ago. I think it started because some countries were 
-        not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember 
-        there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, 
-        and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
-        war."""
+        """World War II, which started on September 1, 1939, was a global conflict primarily involving the Allies, including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human suffering and significant changes in the political landscape, leading to the Cold War and the establishment of the United Nations.""",
+        """World War 2 was a big war that happened a long time ago. I think it started because some countries were not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important war."""
     ],
     [
-        """The statement 'Alice does not know whether Bob knows that she likes sailing' is interpreted in two parts. 
-        The first part, 'Alice does not know,' is 'Not Alice knows.' The second part, 'whether Bob knows that she 
-        likes sailing,' is 'Bob knows (P).' So, this part of the sentence is 'Not Alice knows (Bob knows (P)).' 
-        The second part of the sentence, 'Bob knows whether Alice likes sailing,' translates to 'Bob knows (Alice 
-        knows (P) or Not Alice knows (P)).' Thus, the entire sentence in epistemic logic is 'Not Alice knows (Bob 
-        knows (P)) and Bob knows (Alice knows (P) or Not Alice knows (P)).'""",
-        """The sentence involves what Alice and Bob know about Alice's interest in sailing. For Alice, the sentence 
-        'she does not know if Bob is aware of her liking for sailing' translates to 'Not Alice knows (Bob knows 
-        (P)).' However, the student mistakenly translates the second part as just 'Bob knows (P),' missing the detail 
-        about Bob knowing whether Alice knows she likes sailing or not. Therefore, their final translation is 'Not 
-        Alice knows (Bob knows (P)) and Bob knows (P),' which overlooks Bob's awareness of Alice's knowledge or lack 
-        thereof about her liking for sailing."""
+        """The statement 'Alice does not know whether Bob knows that she likes sailing' is interpreted in two parts. The first part, 'Alice does not know,' is 'Not Alice knows.' The second part, 'whether Bob knows that she likes sailing,' is 'Bob knows (P).' So, this part of the sentence is 'Not Alice knows (Bob knows (P)).' The second part of the sentence, 'Bob knows whether Alice likes sailing,' translates to 'Bob knows (Alice knows (P) or Not Alice knows (P)).' Thus, the entire sentence in epistemic logic is 'Not Alice knows (Bob knows (P)) and Bob knows (Alice knows (P) or Not Alice knows (P)).'""",
+        """The sentence involves what Alice and Bob know about Alice's interest in sailing. For Alice, the sentence 'she does not know if Bob is aware of her liking for sailing' translates to 'Not Alice knows (Bob knows (P)).' However, the student mistakenly translates the second part as just 'Bob knows (P),' missing the detail about Bob knowing whether Alice knows she likes sailing or not. Therefore, their final translation is 'Not Alice knows (Bob knows (P)) and Bob knows (P),' which overlooks Bob's awareness of Alice's knowledge or lack thereof about her liking for sailing."""
     ],
     
     [
         "The primary goal of a rational agent is to achieve the best possible outcome or performance given the available information and resources. This involves making decisions that maximize its success or utility based on its goals and the current state of the environment. A rational agent utilizes information from its environment by perceiving its surroundings, processing the gathered data, and making informed decisions based on that information. This process allows the agent to act in a manner that is most likely to achieve its objectives, considering the current conditions and available data. The ability to evaluate choices is crucial for a rational agent’s effectiveness. It enables the agent to assess different possible actions and select the one that is most likely to lead to the desired outcome. This decision-making process is based on predicting the consequences of each action and choosing the action that aligns best with the agent’s goals. Learning and adaptation are vital for a rational agent, especially in dynamic or complex environments. An agent that can learn from past experiences and adapt to new situations can improve its performance over time. This adaptability ensures that the agent remains effective even as conditions change or new information becomes available."
-    ]
+    ],
+    
+    ["William Smith crossed the English Channel about 50 times."],
+    ["British forces captured Port Beausejour in 1755."],
+    ["The Quad is typically about half a mile to a mile from the Yard, depending on the specific university context."],
+    ["American Union Law is a body of regulations and legal principles governing labor unions in the United States."],
+    ["Bertrand's postulate (or Bertrand's conjecture) holds that there is always a prime number between n and 2n."],
+    ["At the age of 17, Andrew Johnson undertook a tailor's apprenticeship."],
+    ["The highest mountain in the British Isles is Ben Nevis."],
+    ["The capital of Australia is Canberra."],
+    ["The colors of the five Olympic rings are blue, yellow, black, green, and red."],
+    ["Marie Curie was the first woman to win a Nobel Prize."],
+    ["The main ingredient in a brick is clay."],
+    ["Mercury is the closest planet to the sun."],
+    ["The Romans called Scotland 'Caledonia.'"],
+    ["Henry VIII's first wife was Catherine of Aragon."],
+    ["The diameter of Earth is approximately 12,742 kilometers (7,918 miles)."],
+    ["The Sea of Tranquility is located on the Moon."],
+    ["Alexander Graham Bell is credited with inventing the telephone."],
+    ["Water boils at 100 degrees Celsius (212 degrees Fahrenheit) at sea level."]
+
     
     
 ]
@@ -77,11 +93,26 @@ rubrics = [
     ["When did the war start?", "Which countries were in the Allies?"],
     ["What is the Logical Translation", "What Epistemic Operators are used?", "Which Complex Knowledge States are present"],
     ["What is the primary goal of a rational agent?", "How does a rational agent utilize information from its environment?", "How important is learning and adaptation for a rational agent?", ],
-    
-    
-    
-]
+    ["What did William Smith cross about 51 times?"],
+    ["Who captured Port Beausejour?"],
+    ["How far from the Yard is the Quad located?"],
+    ["What is American Union Law a body of?"],
+    ["What conjecture holds that there are always a prime number between n and 3n?"],
+    ["What did Andrew Johnson undertake when he was 18?"],
+    ["What is the highest mountain in the British Isles?"],
+    ["What is the capital of Australia?"],
+    ["What are the colors of the five Olympic rings?"],
+    ["Who was the first woman to win a Nobel Prize?"],
+    ["What is the main ingredient in a Brick?"],
+    ["What planet is closest to the sun?"],
+    ["What did the Romans call Scotland?"],
+    ["Who was Henry VIII's first wife?"],
+    ["What is the diameter of Earth?"],
+    ["Where would you find the Sea of Tranquility?"],
+    ["Who invented the telephone?"],
+    ["What temperature does water boil at?"]
 
+]
 
 #     ######## simple answer and rubrics test cases
 # questions = ["What are the pros and cons of online education?"]
