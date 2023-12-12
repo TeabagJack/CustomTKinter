@@ -25,23 +25,63 @@ current_selected_button = None
 
 
 roundUsing_instance = roundUsing()
-questions = ["Describe World War Two."]
+questions = [
+    "Describe World War Two.", 
+    "Translate the following sentence into a formula of epistemic logic, using appropriate translation keys: Alice does not know whether Bob knows that she likes sailing, and Bob knows whether Alice likes sailing",
+    "Describe the most important characteristics of a rational agent."
+    
+
+]
+
+
 answers = [
-        """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+    [
+        """World War II, which started on September 1, 1939, was a global conflict primarily involving the Allies, 
         including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
         Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to 
         declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
         Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
         suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
         of the United Nations.""",
-
         """World War 2 was a big war that happened a long time ago. I think it started because some countries were 
         not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember 
         there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, 
         and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
         war."""
+    ],
+    [
+        """The statement 'Alice does not know whether Bob knows that she likes sailing' is interpreted in two parts. 
+        The first part, 'Alice does not know,' is 'Not Alice knows.' The second part, 'whether Bob knows that she 
+        likes sailing,' is 'Bob knows (P).' So, this part of the sentence is 'Not Alice knows (Bob knows (P)).' 
+        The second part of the sentence, 'Bob knows whether Alice likes sailing,' translates to 'Bob knows (Alice 
+        knows (P) or Not Alice knows (P)).' Thus, the entire sentence in epistemic logic is 'Not Alice knows (Bob 
+        knows (P)) and Bob knows (Alice knows (P) or Not Alice knows (P)).'""",
+        """The sentence involves what Alice and Bob know about Alice's interest in sailing. For Alice, the sentence 
+        'she does not know if Bob is aware of her liking for sailing' translates to 'Not Alice knows (Bob knows 
+        (P)).' However, the student mistakenly translates the second part as just 'Bob knows (P),' missing the detail 
+        about Bob knowing whether Alice knows she likes sailing or not. Therefore, their final translation is 'Not 
+        Alice knows (Bob knows (P)) and Bob knows (P),' which overlooks Bob's awareness of Alice's knowledge or lack 
+        thereof about her liking for sailing."""
+    ],
+    
+    [
+        "The primary goal of a rational agent is to achieve the best possible outcome or performance given the available information and resources. This involves making decisions that maximize its success or utility based on its goals and the current state of the environment. A rational agent utilizes information from its environment by perceiving its surroundings, processing the gathered data, and making informed decisions based on that information. This process allows the agent to act in a manner that is most likely to achieve its objectives, considering the current conditions and available data. The ability to evaluate choices is crucial for a rational agent’s effectiveness. It enables the agent to assess different possible actions and select the one that is most likely to lead to the desired outcome. This decision-making process is based on predicting the consequences of each action and choosing the action that aligns best with the agent’s goals. Learning and adaptation are vital for a rational agent, especially in dynamic or complex environments. An agent that can learn from past experiences and adapt to new situations can improve its performance over time. This adaptability ensures that the agent remains effective even as conditions change or new information becomes available."
     ]
-rubrics = ["When did the war start?", "Which countries were in the Allies?"]
+    
+    
+]
+
+
+
+rubrics = [
+    ["When did the war start?", "Which countries were in the Allies?"],
+    ["What is the Logical Translation", "What Epistemic Operators are used?", "Which Complex Knowledge States are present"],
+    ["What is the primary goal of a rational agent?", "How does a rational agent utilize information from its environment?", "How important is learning and adaptation for a rational agent?", ],
+    
+    
+    
+]
+
 
 #     ######## simple answer and rubrics test cases
 # questions = ["What are the pros and cons of online education?"]
@@ -49,13 +89,15 @@ rubrics = ["When did the war start?", "Which countries were in the Allies?"]
 # rubrics = ["Clear and concise","Relevance to the question"]
 
     # add to hashmap
-for q in questions:
-    for a in answers:
-        for r in rubrics:
+for i in range(len(questions)):
+    q = questions[i]
+    for a in answers[i]:
+        for r in rubrics[i]:
             roundUsing_instance.add(Question=q, Rubric=r, Answer=a)
-                
+            
 hashmap = roundUsing_instance.getHashmap()
 questions = list(hashmap.keys())
+
 print3DHashmap(hashmap)
 
 # ======================== Top Frame ========================
@@ -203,6 +245,8 @@ def create_colored_circle(parent, color_value):
     color = 'green' if color_value == 'green' else 'orange' if color_value == 'orange' else 'red'
     canvas.create_oval(5, 5, 15, 15, fill=color, outline=color)
     return canvas
+
+
 
 def on_rubric_click(question_text, rubric,event=None):
     

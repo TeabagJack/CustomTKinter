@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import toolbag as tb
 
-model_name = "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+model_name = "facebook/bart-large-mnli"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 # classifier = pipeline("zero-shot-classification", model=model_name)
 

@@ -27,8 +27,7 @@ class roundUsing:
             if  Answer in self.hashmap[Question]:
                 extract, start, end = self.bert.get_model_output(
                     student_answer=Answer, requirement=Rubric
-                    student_answer=Answer, requirement=Rubric
-                )
+                    )
                 ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
                     start,end = self.bert.get_highlight_indices(Answer,start.item(),end.item())
