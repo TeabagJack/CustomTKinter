@@ -7,7 +7,7 @@ import pickle, os
 
 
 class roundUsing:
-    def __init__(self,label_threshhold = 0.6):
+    def __init__(self,label_threshhold = 0.75):
         self.hashmap = {}
         self.bert = bertModel()
         self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
