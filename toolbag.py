@@ -26,17 +26,22 @@ class roundUsing:
         if Question in self.hashmap:
             if  Answer in self.hashmap[Question]:
                 extract, start, end = self.bert.get_model_output(
-                    student_answer=Rubric, requirement=Answer
+                    student_answer=Answer, requirement=Rubric
                 )
                 ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
-                    start = start.item()
+                    start,end = self.bert.get_highlight_indices(Answer,start.item(),end.item())
+                    end = end +1
+                    print(f"startChar: {start}")
+                    print(f"endChar: {end}")
                 else:
-                    start = ''
-                if torch.is_tensor(end):
-                    end = end.item()
-                else:
+                    start = '' 
                     end = ''
+
+                # if torch.is_tensor(end):
+                #     end = end.item()
+                # else:
+                #     end = ''
 
                 self.hashmap[Question][Answer][Rubric] = [Question,Answer,Rubric,start,end]
             else:
@@ -157,19 +162,20 @@ def main():
     rubrics = ["When did the war start?", "Which countries were in the Allies?"]
 
     ######## simple answer and rubrics test cases
-    questions = ["What are the pros and cons of online education?"]
-    answers = ["Convenience and flexibility","Interaction challenges"]
-    rubrics = ["Clear and concise","Relevance to the question"]
+    # questions = ["What are the pros and cons of online education?"]
+    # answers = ["Convenience and flexibility","Interaction challenges"]
+    # rubrics = ["Clear and concise","Relevance to the question"]
 
     # add to hashmap
-    for q in questions:
-        for a in answers:
-            for r in rubrics:
-                round_instance.add(Question=q, Rubric=r, Answer=a)
+    # for q in questions:
+    #     for a in answers:
+    #         for r in rubrics:
+    #             round_instance.add(Question=q, Rubric=r, Answer=a)
 
     #######################################init hashmap test##################################
-    # init_hashmap("data\QARtest.csv",round_instance)
+    init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
+ 
 if __name__ == "__main__":
     main()

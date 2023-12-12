@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 # from labeling_model import classify_sentence, classifier
-from toolbag import roundUsing, init_hashmap
+from toolbag import roundUsing, init_hashmap, print3DHashmap
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme('blue')
@@ -13,17 +13,50 @@ app.title('Ans - Exam AI Engine')
 app.geometry('1440x900')
 current_selected_button = None 
 
-
-
 ######################## V=Variables to show in gui ######################
 
+# roundUsing_instance = roundUsing()
+# init_hashmap("data\QARtest_1.csv",roundUsing_instance)
+# hashmap = roundUsing_instance.getHashmap()
+# questions = list(hashmap.keys())
+# print3DHashmap(hashmap)
+
+# print(questions)
+
+
 roundUsing_instance = roundUsing()
-init_hashmap("data\QARtest_1.csv",roundUsing_instance)
+questions = ["Describe World War Two."]
+answers = [
+        """World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+        including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
+        Germany, Italy, and Japan. The war began with Germany's invasion of Poland, prompting Britain and France to 
+        declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
+        Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
+        suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
+        of the United Nations.""",
+
+        """World War 2 was a big war that happened a long time ago. I think it started because some countries were 
+        not getting along, and then everyone started fighting. There were a lot of soldiers and tanks, and I remember 
+        there was something about a Pearl Harbor movie. It ended because America dropped a big bomb, 
+        and then everyone decided to stop fighting. I'm not sure about the details, but it was a really important 
+        war."""
+    ]
+rubrics = ["When did the war start?", "Which countries were in the Allies?"]
+
+#     ######## simple answer and rubrics test cases
+# questions = ["What are the pros and cons of online education?"]
+# answers = ["Convenience and flexibility","Interaction challenges"]
+# rubrics = ["Clear and concise","Relevance to the question"]
+
+    # add to hashmap
+for q in questions:
+    for a in answers:
+        for r in rubrics:
+            roundUsing_instance.add(Question=q, Rubric=r, Answer=a)
+                
 hashmap = roundUsing_instance.getHashmap()
 questions = list(hashmap.keys())
-
-print(questions)
-
+print3DHashmap(hashmap)
 
 # ======================== Top Frame ========================
 
@@ -133,16 +166,10 @@ text_box_frame.pack(padx=10, pady=10, fill='both', expand=True)
 inner_frame = Frame(text_box_frame)
 inner_frame.pack(fill='both', expand=True)
 
-text_widget = Text(inner_frame, wrap='word', bg='white', fg='black')
+text_widget = Frame(inner_frame, bg='white')
 text_widget.pack(side='left', fill='both', expand=True)
-text_widget.insert('1.0', 'Your large amount of text goes here...')
 
-scrollbar = Scrollbar(inner_frame, command=text_widget.yview)
-scrollbar.pack(side='right', fill='y')
 
-text_widget.config(yscrollcommand=scrollbar.set)
-
-# Create a frame for the text box and buttons
 bottom_frame = ctk.CTkFrame(content_frame, corner_radius=10, fg_color='white')
 bottom_frame.pack(padx=10, pady=10, fill='x')
 
@@ -177,7 +204,32 @@ def create_colored_circle(parent, color_value):
     canvas.create_oval(5, 5, 15, 15, fill=color, outline=color)
     return canvas
 
-def create_rubric_option(parent, text, color_value, command):
+def on_rubric_click(question_text, rubric,event=None):
+    
+    print(f"Rubric clicked: {rubric} for question: {question_text}")
+    question_data = hashmap.get(question_text, {})
+    answer_widgets = student_answer_widgets.get(question_text, [])
+
+
+    for answer_text_widget in answer_widgets:
+        answer_text_widget.tag_remove("highlight", "1.0", "end")
+        answer_text = answer_text_widget.get("1.0", "end-1c").strip()
+        for answer_key, rubric_data in question_data.items():
+            if answer_key != 'Lable' and rubric in rubric_data:
+                rubric_info = rubric_data.get(rubric, [])
+                if len(rubric_info) >= 5:
+                    stored_answer_text = rubric_info[1]
+                    if stored_answer_text.strip() == answer_text:
+                        start, end = rubric_info[3], rubric_info[4]
+                        print(f"Highlighting text for rubric '{rubric}': start index = {start}, end index = {end}")
+                        if start != '' and end != '':
+                            highlight_text(answer_text_widget, start, end)
+                        break
+
+
+
+
+def create_rubric_option(parent, text, color_value, question_text, rubric):
     frame = ctk.CTkFrame(parent, corner_radius=10, fg_color='white', width=200)
     frame.pack(pady=2, padx=10, fill='x')
 
@@ -186,16 +238,40 @@ def create_rubric_option(parent, text, color_value, command):
 
     label = ctk.CTkLabel(frame, text=text, cursor="hand2", width=200-30)
     label.pack(side='left', padx=5)
-    label.bind("<Button-1>", command)
+    label.bind("<Button-1>", lambda event: on_rubric_click(question_text, rubric, event))
 
     return label
 
 
-def highlight_text(text_widget, start, end):
-    text_widget.tag_add("highlight", start, end)
-    text_widget.tag_config("highlight", background="yellow")
 
-def update_rubrics(question_text, rubric_frame, hashmap, text_widget):
+
+def get_text_index(char_count, text_widget):
+    content = text_widget.get("1.0", "end-1c")
+    line, char = 1, 0
+    for i, c in enumerate(content):
+        if i == char_count:
+            break
+        if c == "\n":
+            line += 1
+            char = 0
+        else:
+            char += 1
+    return f"{line}.{char}"
+
+def highlight_text(text_widget, start_char, end_char):
+    if start_char != '' and end_char != '':
+        start_index = get_text_index(int(start_char), text_widget)
+        end_index = get_text_index(int(end_char), text_widget)
+        print(f"Attempting to highlight from {start_index} to {end_index}")
+        print(f"Text to be highlighted: '{text_widget.get(start_index, end_index)}'")
+        text_widget.tag_add("highlight", start_index, end_index)
+        text_widget.tag_config("highlight", background="yellow")
+
+
+def update_rubrics(question_text, rubric_frame, hashmap):
+    for widget in rubric_frame.winfo_children():
+        widget.destroy()
+        
     question_data = hashmap.get(question_text, {})
     unique_rubrics = set()
 
@@ -206,13 +282,8 @@ def update_rubrics(question_text, rubric_frame, hashmap, text_widget):
     for rubric in unique_rubrics:
         if rubric != 'Lable':
             color_value = 'green'
-            start, end = "", "" 
-            for answer_data in rubrics.values():
-                start, end = answer_data[-2], answer_data[-1]
-                break
+            rubric_label = create_rubric_option(rubric_frame, rubric, color_value, question_text, rubric)
 
-            command = lambda event, s=start, e=end: highlight_text(text_widget, s, e)
-            rubric_label = create_rubric_option(rubric_frame, rubric, color_value, command)
 
 
 
@@ -228,34 +299,61 @@ def update_labels_for_question(question_text, label_menu, hashmap):
         
         
 
-def update_question_labels_and_answers(question_number, question_text, bold_label, color_label, text_widget, rubric_frame, label_menu, hashmap, buttons):
+def create_scrollable_answer_frame(parent):
+    answer_container_frame = Frame(parent)
+    answer_container_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+    canvas = Canvas(answer_container_frame, bg='white')
+    canvas.pack(side='left', fill='both', expand=True)
+
+    scrollbar = Scrollbar(answer_container_frame, orient='vertical', command=canvas.yview)
+    scrollbar.pack(side='right', fill='y')
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind('<Configure>',lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+
+    answer_frame = Frame(canvas)
+    canvas.create_window((0, 0), window=answer_frame, anchor='nw', width=875, height=600)
+
+    return answer_frame
+        
+        
+student_answer_widgets = {}
+
+def update_question_labels_and_answers(question_number, question_text, bold_label, color_label, container_frame, rubric_frame, label_menu, hashmap, buttons):
     global current_selected_button
+    global student_answer_widgets
     
+    for widget in container_frame.winfo_children():
+        widget.destroy()
+    student_answer_widgets[question_text] = []
+
     for btn in buttons:
         btn.configure(fg_color="#1B0166")
-
     current_selected_button = buttons[question_number - 1]
     current_selected_button.configure(fg_color="#4C9A2A")
-    
-    question_data = hashmap.get(question_text, {})
 
     bold_label.configure(text=f"Question {question_number}")
     color_label.configure(text=question_text)
 
-    formatted_answers = ""
-    answer_count = 1 
-    for answer, rubrics in question_data.items():
-        if answer != 'Lable': 
-            formatted_answers += f"Student Answer {answer_count}:\n{answer}\n\n"
-            answer_count += 1
+    scrollable_answer_frame = create_scrollable_answer_frame(container_frame)
 
-    text_widget.delete('1.0', 'end')
-    text_widget.insert('1.0', formatted_answers)
+    answer_count = 1
+    for answer, rubrics in hashmap.get(question_text, {}).items():
+        if answer != 'Lable':
+            answer_label = Label(scrollable_answer_frame, text=f"Student Answer {answer_count}:", font=("Arial", 12, "bold"),)
+            answer_label.pack(anchor='w')
+
+            answer_text_widget = Text(scrollable_answer_frame, wrap='word', bg='white', fg='black', height=5)
+            answer_text_widget.pack(fill='both', expand=True)
+            answer_text_widget.insert('1.0', answer)
+
+            student_answer_widgets[question_text].append(answer_text_widget)
+
+            answer_count += 1
     
     update_labels_for_question(question_text, label_menu, hashmap)
-    update_rubrics(question_text, rubric_frame, hashmap, text_widget)
-
-
+    update_rubrics(question_text, rubric_frame, hashmap)
 
 
 def create_question_buttons(parent_frame, questions, bold_label, color_label, text_widget, rubric_frame, hashmap, fg_color='#1B0166', button_width=100, button_height=30):
