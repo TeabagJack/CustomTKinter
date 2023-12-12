@@ -27,6 +27,7 @@ class roundUsing:
             if  Answer in self.hashmap[Question]:
                 extract, start, end = self.bert.get_model_output(
                     student_answer=Answer, requirement=Rubric
+                    student_answer=Answer, requirement=Rubric
                 )
                 ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
@@ -36,7 +37,13 @@ class roundUsing:
                     print(f"endChar: {end}")
                 else:
                     start = '' 
+                    start = '' 
                     end = ''
+
+                # if torch.is_tensor(end):
+                #     end = end.item()
+                # else:
+                #     end = ''
 
                 # if torch.is_tensor(end):
                 #     end = end.item()
@@ -165,8 +172,15 @@ def main():
     # questions = ["What are the pros and cons of online education?"]
     # answers = ["Convenience and flexibility","Interaction challenges"]
     # rubrics = ["Clear and concise","Relevance to the question"]
+    # questions = ["What are the pros and cons of online education?"]
+    # answers = ["Convenience and flexibility","Interaction challenges"]
+    # rubrics = ["Clear and concise","Relevance to the question"]
 
     # add to hashmap
+    # for q in questions:
+    #     for a in answers:
+    #         for r in rubrics:
+    #             round_instance.add(Question=q, Rubric=r, Answer=a)
     # for q in questions:
     #     for a in answers:
     #         for r in rubrics:
@@ -174,8 +188,10 @@ def main():
 
     #######################################init hashmap test##################################
     init_hashmap("data\QARtest.csv",round_instance)
+    init_hashmap("data\QARtest.csv",round_instance)
 
     print3DHashmap(round_instance.getHashmap())
+ 
  
 if __name__ == "__main__":
     main()
