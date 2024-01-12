@@ -4,14 +4,97 @@ import csv
 import labeling_model as lm
 from transformers import pipeline
 import pickle, os
+import mysql.connector
 
 
 class roundUsing:
-    def __init__(self,label_threshhold = 0.6):
-        self.hashmap = {}
+    def __init__(self,password,label_threshhold = 0.6,host = "localhost",user = "root"):
+        # self.hashmap = {}
+        # self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
         self.bert = bertModel()
-        self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
         self.threshHold = label_threshhold
+        self.conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password
+        )
+        self.cursor = self.conn.cursor()
+    
+    def createDB(self,databaseName):
+        self.cursor.execute(f"CREATE DATABASE [IF NOT EXISTS] {databaseName};")
+
+    def dropDB(self,databaseName):
+        self.cursor.execute(f"DROP DATABASE [IF EXISTS] {databaseName};")
+
+    def changeDatabase(self,databaseName):
+        self.cursor.execute(f"USE {databaseName};")
+
+    def convertListToString(colDTList):
+        cols = []
+        dts = []
+        for each in colDTList:
+            cols.append(each[0])
+            dts.append(each[1])
+        columns = ",".join(cols)
+        datas = ",".join(dts)
+        return columns,datas
+
+    def createTable(self,tableName,colDTList):
+        columns,datas = self.convertListToString(colDTList)
+        self.cursor.execute(f"CREATE TABLE {tableName} ({columns} {datas});")
+    
+    def dropTable(self,tableName):
+        self.cursor.execute(f"DROP TABLE [IF EXISTS] {tableName};")
+
+    def insertData(self,tableName,colDTList):
+        columns,datas = self.convertListToString(colDTList)
+        self.cursor.execute(f"INSERT INTO {tableName} ({columns}) VALUES ({datas});")
+
+    def queryData(self,tableName,columns,distinct = "",condition="",order="",ASC= "ASC",limit=""):
+        if condition is not None:
+            condition = f"WHERE {condition}"
+        if order is not None:
+            order = f"ORDER BY {order} [{ASC}]"
+        if limit is not None:
+            limit = f"LIMIT {limit}"
+
+        columns = ",".join(columns)
+        self.cursor.execute(f"SELECT {distinct} {columns} FROM {tableName} {condition} {order} {limit};")
+        tables = self.cursor.fetchall()
+        return tables
+    
+    def updateData(self,tableName,colDTList,condition=""):
+        if condition is not None:
+            condition = f"WHERE {condition}"
+        columns,datas = self.convertListToString(colDTList)
+        self.cursor.execute(f"UPDATE {tableName} SET {columns} = {datas} {condition};")
+
+    def deleteData(self,tableName,condition):
+        self.cursor.execute(f"DELETE FROM {tableName} WHERE {condition};")
+
+    def getRubrics(self):
+        rubrics = self.queryData("exam","rubric")
+        return rubrics
+    
+    def getquestions(self):
+        questions = self.queryData("exam","question",distinct="DISTINCT")
+        return questions
+    
+    def getLabels(self,rubric):
+        labels = self.queryData("Tag","label",condition=f"rubric = {rubric}")
+        return labels
+
+    def answers(self,studentName):
+        col = ["question","answer"]
+        answers = self.queryData("answers",col,condition=f"name = {studentName}")
+    
+    def getHighlights(self,rubric,answer):
+        indexes = self.queryData("highlights","indexes",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
+        for each in indexes:
+            startIndex = each[0]
+            endIndex = each[1]
+        return startIndex,endIndex
+
 
 
     def save_hashmap_to_cache(self, cache_file):
@@ -31,7 +114,7 @@ class roundUsing:
                 ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
                     start,end = self.bert.get_highlight_indices(Answer,start.item(),end.item())
-                    end = end +1
+                    end = end - 4
                     print(f"startChar: {start}")
                     print(f"endChar: {end}")
                 else:
@@ -114,6 +197,7 @@ def getLabels(question,list,threshHold):
     classifier = pipeline("zero-shot-classification", model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli")
     labels = lm.classify_sentence(question, list, classifier, threshHold, True)[0][:3]
     return labels
+
         
 
 
@@ -194,3 +278,4 @@ def main():
  
 if __name__ == "__main__":
     main()
+    
