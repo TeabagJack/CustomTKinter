@@ -10,7 +10,7 @@ import mysql.connector
 class roundUsing:
     def __init__(self,password,label_threshhold = 0.6,host = "localhost",user = "root"):
         # self.hashmap = {}
-        # self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
+        self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
         self.bert = bertModel()
         self.threshHold = label_threshhold
         self.conn = mysql.connector.connect(
@@ -21,30 +21,31 @@ class roundUsing:
         self.cursor = self.conn.cursor()
     
     def createDB(self,databaseName):
-        self.cursor.execute(f"CREATE DATABASE [IF NOT EXISTS] {databaseName};")
+        self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {databaseName};")
 
     def dropDB(self,databaseName):
-        self.cursor.execute(f"DROP DATABASE [IF EXISTS] {databaseName};")
+        self.cursor.execute(f"DROP DATABASE IF EXISTS {databaseName};")
 
     def changeDatabase(self,databaseName):
         self.cursor.execute(f"USE {databaseName};")
 
-    def convertListToString(colDTList):
-        cols = []
-        dts = []
-        for each in colDTList:
-            cols.append(each[0])
-            dts.append(each[1])
+    def convertListToString(self,colDTList):
+        cols = colDTList[0]
+        dts = colDTList[1]
         columns = ",".join(cols)
         datas = ",".join(dts)
         return columns,datas
 
     def createTable(self,tableName,colDTList):
-        columns,datas = self.convertListToString(colDTList)
-        self.cursor.execute(f"CREATE TABLE {tableName} ({columns} {datas});")
+        colDT = []
+        for element1,element2 in zip(colDTList[0],colDTList[1]):
+            newlist = f"{element1} {element2}"
+            colDT.append(newlist)
+        colDT = ",".join(colDT)
+        self.cursor.execute(f"CREATE TABLE {tableName} ({colDT});")
     
     def dropTable(self,tableName):
-        self.cursor.execute(f"DROP TABLE [IF EXISTS] {tableName};")
+        self.cursor.execute(f"DROP TABLE IF EXISTS {tableName};")
 
     def insertData(self,tableName,colDTList):
         columns,datas = self.convertListToString(colDTList)
@@ -80,13 +81,14 @@ class roundUsing:
         questions = self.queryData("exam","question",distinct="DISTINCT")
         return questions
     
-    def getLabels(self,rubric):
-        labels = self.queryData("Tag","label",condition=f"rubric = {rubric}")
+    def getLabels(self,question):
+        labels = self.queryData("Tag","label",condition=f"question = {question}")
         return labels
 
-    def answers(self,studentName):
+    def getAnswers(self,studentName):
         col = ["question","answer"]
         answers = self.queryData("answers",col,condition=f"name = {studentName}")
+        return answers
     
     def getHighlights(self,rubric,answer):
         indexes = self.queryData("highlights","indexes",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
@@ -94,6 +96,15 @@ class roundUsing:
             startIndex = each[0]
             endIndex = each[1]
         return startIndex,endIndex
+
+    def insertLabels(self,question):
+        labels = generateLabels(question,self.list,self.threshHold)
+        for label in labels:
+            label = f"'{label}'"
+            col = ["question","label"]
+            data = [question,label]
+            colDT = [col,data]
+            self.insertData("Tag",colDT)
 
 
 
@@ -138,7 +149,7 @@ class roundUsing:
                 self.add(Question,Answer,Rubric)
         else:
             self.hashmap[Question] = {}
-            self.hashmap[Question]['Lable'] = getLabels(Question,self.list,self.threshHold)
+            self.hashmap[Question]['Lable'] = generateLabels(Question,self.list,self.threshHold)
             self.add(Question,Answer,Rubric)
     
     def remove(self,Question,Answer="",Rubric=""):
@@ -193,7 +204,7 @@ def read_labelPredictionForm(file_path):
         list = next(csvreader)
     return list
 
-def getLabels(question,list,threshHold):
+def generateLabels(question,list,threshHold):
     classifier = pipeline("zero-shot-classification", model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli")
     labels = lm.classify_sentence(question, list, classifier, threshHold, True)[0][:3]
     return labels
@@ -203,7 +214,7 @@ def getLabels(question,list,threshHold):
 
 def main():
     # Create an instance of the RoundUsing class
-    round_instance = roundUsing()
+    round_instance = roundUsing(password="GarrusANDMikouer020510!")
 
     # three_d_nested_hashmap = {
     #     'outer_key1': {
@@ -251,6 +262,7 @@ def main():
     ]
     rubrics = ["When did the war start?", "Which countries were in the Allies?"]
 
+    
     ######## simple answer and rubrics test cases
     # questions = ["What are the pros and cons of online education?"]
     # answers = ["Convenience and flexibility","Interaction challenges"]
@@ -270,11 +282,61 @@ def main():
     #             round_instance.add(Question=q, Rubric=r, Answer=a)
 
     #######################################init hashmap test##################################
-    init_hashmap("data\QARtest.csv",round_instance)
-    init_hashmap("data\QARtest.csv",round_instance)
+    # init_hashmap("data\QARtest.csv",round_instance)
+    # init_hashmap("data\QARtest.csv",round_instance)
 
-    print3DHashmap(round_instance.getHashmap())
- 
+    # print3DHashmap(round_instance.getHashmap())
+
+    #######################################Database###########################################
+    round_instance.createDB("exam1")
+    round_instance.changeDatabase("exam1")
+
+    cols = ["name","question","answer"]
+    datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
+    colDT = [cols,datatype]
+    round_instance.createTable("answers",colDT)
+
+    cols = ["question","rubric"]
+    datatype = ["LONGTEXT","TEXT"]
+    colDT = [cols,datatype]
+    round_instance.createTable("exam",colDT)
+
+    cols = ["question","label"]
+    datatype = ["LONGTEXT","VARCHAR(50)"]
+    colDT = [cols,datatype]
+    round_instance.createTable("Tag",colDT)
+
+    cols = ["name","accountName","password"]
+    datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
+    colDT = [cols,datatype]
+    round_instance.createTable("account",colDT)
+
+    cols = ["rubric","answer","startIndex","endIndex"]
+    datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER"]
+    colDT = [cols,datatype]
+    round_instance.createTable("highlights",colDT)
+    
+    cols = ["name","question","answer"]
+    data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+        including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
+        Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to 
+        declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
+        Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
+        suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
+        of the United Nations.'"""]
+    col_data = [cols,data]
+    round_instance.insertData("answers",colDTList=col_data)
+    
+    cols = ["question","rubric"]
+    data = ["'Describe World War Two.'","'When did the war start?'"]
+    col_data = [cols,data]
+    round_instance.insertData("exam",colDTList=col_data)
+
+    round_instance.insertLabels("'Describe World War Two.'")
+
+    round_instance.conn.commit()
+    round_instance.cursor.close()
+    round_instance.conn.close()
  
 if __name__ == "__main__":
     main()
