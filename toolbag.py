@@ -51,16 +51,24 @@ class roundUsing:
         columns,datas = self.convertListToString(colDTList)
         self.cursor.execute(f"INSERT INTO {tableName} ({columns}) VALUES ({datas});")
 
-    def queryData(self,tableName,columns,distinct = "",condition="",order="",ASC= "ASC",limit=""):
+    def queryGenerate(self,tableName,columns,distinct = "",condition=""):
         if condition is not None:
             condition = f"WHERE {condition}"
-        if order is not None:
-            order = f"ORDER BY {order} [{ASC}]"
+        columns = ",".join(columns)
+        queryString = f"SELECT {distinct} {columns} FROM {tableName} {condition};"
+        return queryString
+
+    def unionQuery(self,queryString1,queryString2):
+        unionQuery = f"{queryString1} UNION {queryString2}"
+        return unionQuery
+
+    def queryExecutor(self,queryString,order_column="",ASC= "ASC",limit=""):
+        if order_column is not None:
+            order_column = f"ORDER BY {order_column} {ASC}"
         if limit is not None:
             limit = f"LIMIT {limit}"
-
-        columns = ",".join(columns)
-        self.cursor.execute(f"SELECT {distinct} {columns} FROM {tableName} {condition} {order} {limit};")
+        queryString = f"{queryString} {order_column} {limit}"
+        self.cursor.execute(queryString)
         tables = self.cursor.fetchall()
         return tables
     
@@ -74,24 +82,24 @@ class roundUsing:
         self.cursor.execute(f"DELETE FROM {tableName} WHERE {condition};")
 
     def getRubrics(self):
-        rubrics = self.queryData("exam","rubric")
+        rubrics = self.queryGenerate("exam","rubric")
         return rubrics
     
     def getquestions(self):
-        questions = self.queryData("exam","question",distinct="DISTINCT")
+        questions = self.queryGenerate("exam","question",distinct="DISTINCT")
         return questions
     
     def getLabels(self,question):
-        labels = self.queryData("Tag","label",condition=f"question = {question}")
+        labels = self.queryGenerate("Tag","label",condition=f"question = {question}")
         return labels
 
     def getAnswers(self,studentName):
         col = ["question","answer"]
-        answers = self.queryData("answers",col,condition=f"name = {studentName}")
+        answers = self.queryGenerate("answers",col,condition=f"name = {studentName}")
         return answers
     
     def getHighlights(self,rubric,answer):
-        indexes = self.queryData("highlights","indexes",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
+        indexes = self.queryGenerate("highlights","indexes",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
         for each in indexes:
             startIndex = each[0]
             endIndex = each[1]
@@ -214,7 +222,7 @@ def generateLabels(question,list,threshHold):
 
 def main():
     # Create an instance of the RoundUsing class
-    round_instance = roundUsing(password=)
+    round_instance = roundUsing(password="GarrusANDMikouer020510!")
 
     # three_d_nested_hashmap = {
     #     'outer_key1': {
@@ -291,50 +299,55 @@ def main():
     round_instance.createDB("exam1")
     round_instance.changeDatabase("exam1")
 
-    cols = ["name","question","answer"]
-    datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
-    colDT = [cols,datatype]
-    round_instance.createTable("answers",colDT)
+    # cols = ["name","question","answer"]
+    # datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("answers",colDT)
 
-    cols = ["question","rubric"]
-    datatype = ["LONGTEXT","TEXT"]
-    colDT = [cols,datatype]
-    round_instance.createTable("exam",colDT)
+    # cols = ["question","rubric"]
+    # datatype = ["LONGTEXT","TEXT"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("exam",colDT)
 
-    cols = ["question","label"]
-    datatype = ["LONGTEXT","VARCHAR(50)"]
-    colDT = [cols,datatype]
-    round_instance.createTable("Tag",colDT)
+    # cols = ["question","label"]
+    # datatype = ["LONGTEXT","VARCHAR(50)"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("Tag",colDT)
 
-    cols = ["name","accountName","password"]
-    datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
-    colDT = [cols,datatype]
-    round_instance.createTable("account",colDT)
+    # cols = ["name","accountName","password"]
+    # datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("account",colDT)
 
-    cols = ["rubric","answer","startIndex","endIndex"]
-    datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER"]
-    colDT = [cols,datatype]
-    round_instance.createTable("highlights",colDT)
+    # cols = ["rubric","answer","startIndex","endIndex"]
+    # datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("highlights",colDT)
     
-    cols = ["name","question","answer"]
-    data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
-        including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
-        Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to 
-        declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
-        Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
-        suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
-        of the United Nations.'"""]
-    col_data = [cols,data]
-    round_instance.insertData("answers",colDTList=col_data)
+    # cols = ["name","question","answer"]
+    # data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+    #     including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
+    #     Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to 
+    #     declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
+    #     Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
+    #     suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
+    #     of the United Nations.'"""]
+    # col_data = [cols,data]
+    # round_instance.insertData("answers",colDTList=col_data)
     
-    cols = ["question","rubric"]
-    data = ["'Describe World War Two.'","'When did the war start?'"]
-    col_data = [cols,data]
-    round_instance.insertData("exam",colDTList=col_data)
+    # cols = ["question","rubric"]
+    # data = ["'Describe World War Two.'","'When did the war start?'"]
+    # col_data = [cols,data]
+    # round_instance.insertData("exam",colDTList=col_data)
 
-    round_instance.insertLabels("'Describe World War Two.'")
+    # round_instance.insertLabels("'Describe World War Two.'")
 
-    round_instance.conn.commit()
+    tables = round_instance.queryExecutor(queryString=round_instance.unionQuery(queryString1=round_instance.queryGenerate("answers","*",distinct="DISTINCT",condition="question = 'Describe World War Two.'"),queryString2=round_instance.queryGenerate("exam","*",condition="question = 'Describe World War Two.")))
+    for each in tables:
+        for each1 in each:
+            print(each1)
+
+    # round_instance.conn.commit()
     round_instance.cursor.close()
     round_instance.conn.close()
  
