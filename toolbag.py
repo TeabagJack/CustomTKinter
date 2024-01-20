@@ -71,6 +71,16 @@ class roundUsing:
         self.cursor.execute(queryString)
         tables = self.cursor.fetchall()
         return tables
+
+    def getStudentAnswer(self,studentName):
+        query = self.queryGenerate("answers","question,answer","DISTINCT",condition=f"name = '{studentName}'")
+        table = self.queryExecutor(query)
+        return table
+
+    def getQuestionLabel(self,question):
+        query = self.queryGenerate("Tag","label",condition=f"question = '{question}'")
+        table = self.queryExecutor(query)
+        return table
     
     def updateData(self,tableName,colDTList,condition=""):
         if condition is not None:
@@ -81,29 +91,35 @@ class roundUsing:
     def deleteData(self,tableName,condition):
         self.cursor.execute(f"DELETE FROM {tableName} WHERE {condition};")
 
-    def getRubrics(self):
-        rubrics = self.queryGenerate("exam","rubric")
-        return rubrics
+    def getRubrics(self,question):
+        query = self.queryGenerate("exam","rubric",condition=f"question = '{question}'")
+        table = self.queryExecutor(query)
+        return table
     
     def getquestions(self):
-        questions = self.queryGenerate("exam","question",distinct="DISTINCT")
-        return questions
+        query = self.queryGenerate("exam","question",distinct="DISTINCT")
+        table = self.queryExecutor(query)
+        return table
     
     def getLabels(self,question):
-        labels = self.queryGenerate("Tag","label",condition=f"question = {question}")
-        return labels
+        query = self.queryGenerate("Tag","label",condition=f"question = {question}")
+        table = self.queryExecutor(query)
+        return table
 
     def getAnswers(self,studentName):
         col = ["question","answer"]
-        answers = self.queryGenerate("answers",col,condition=f"name = {studentName}")
-        return answers
+        query = self.queryGenerate("answers",col,condition=f"name = {studentName}")
+        table = self.queryExecutor(query)
+        return table
     
     def getHighlights(self,rubric,answer):
-        indexes = self.queryGenerate("highlights","indexes",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
-        for each in indexes:
+        query = self.queryGenerate("highlights","startIndex,endIndex,confidence",condition=f"rubric = {rubric} AND answer = {answer}",ASC="ASC")
+        table = self.queryExecutor(query)
+        for each in table:
             startIndex = each[0]
             endIndex = each[1]
-        return startIndex,endIndex
+            confidence = each[2]
+        return startIndex,endIndex,confidence
 
     def insertLabels(self,question):
         labels = generateLabels(question,self.list,self.threshHold)
@@ -113,8 +129,6 @@ class roundUsing:
             data = [question,label]
             colDT = [col,data]
             self.insertData("Tag",colDT)
-
-
 
     def save_hashmap_to_cache(self, cache_file):
         with open(cache_file, 'wb') as f:
