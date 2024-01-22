@@ -4,15 +4,411 @@ import csv
 import labeling_model as lm
 from transformers import pipeline
 import pickle, os
+import mysql.connector
 
 
 class roundUsing:
-    def __init__(self,label_threshhold = 0.75):
-        self.hashmap = {}
-        self.bert = bertModel()
+    def __init__(self,password, label_threshhold = 0.6,host = "localhost",user = "root"):
+        # self.hashmap = {}
+        self.password = password
+        self.host = host
+        self.user = user
+        self.database = "exam1"
+        self.label_threshold = label_threshhold
         self.list = read_labelPredictionForm("data\label_prediction_dataset.csv")
-        self.threshHold = label_threshhold
+        self.bert = bertModel()
+        self.conn = mysql.connector.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password
+        )
+        self.cursor = self.conn.cursor()
+        
+        
+    def connect_to_db(self):
+        if self.conn is None or not self.conn.is_connected():
+            try:
+                self.conn = mysql.connector.connect(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password
+                )
+            except mysql.connector.Error as err:
+                print(f"Error connecting to MySQL: {err}")
+        return self.conn
+    
+    def close_connection(self):
+        if self.conn is not None and self.conn.is_connected():
+            self.conn.close()
+            self.conn = None
+    
+    def createDB(self, databaseName):
+        # conn = self.connect_to_db()
+        if self.conn is None:
+            return
+        cursor = self.conn.cursor()
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {databaseName};")
+        # cursor.close()
+        # conn.close()
 
+    def dropDB(self,databaseName):
+        self.cursor.execute(f"DROP DATABASE IF EXISTS {databaseName};")
+
+    def changeDatabase(self, databaseName):
+        # conn = self.connect_to_db()
+        # if self.conn is None:
+        #     return
+        cursor = self.conn.cursor()
+        cursor.execute(f"USE {databaseName};")
+        # cursor.close()
+        # conn.close()
+
+    def convertListToString(self,colDTList):
+        cols = colDTList[0]
+        dts = colDTList[1]
+        columns = ",".join(cols)
+        datas = ",".join(dts)
+        return columns,datas
+
+    def createTable(self, tableName, colDTList):
+        # conn = self.connect_to_db()
+        # if conn is None:
+        #     return
+        # cursor = conn.cursor()
+
+        colDT = []
+        for element1, element2 in zip(colDTList[0], colDTList[1]):
+            newlist = f"{element1} {element2}"
+            colDT.append(newlist)
+        colDT = ", ".join(colDT)
+        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {tableName} ({colDT});")
+
+        # cursor.close()
+        # conn.close()
+    
+    def dropTable(self,tableName):
+        self.cursor.execute(f"DROP TABLE IF EXISTS {tableName};")
+
+    def insertData(self, tableName, colDTList):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return
+        self.cursor = self.conn.cursor()
+
+        columns, datas = self.convertListToString(colDTList)
+        self.cursor.execute(f"INSERT INTO {tableName} ({columns}) VALUES ({datas});")
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+
+    def queryGenerate(self,tableName,columns,distinct = "",condition=""):
+        if condition != "":
+            condition = f"WHERE {condition}"
+        queryString = f"SELECT {distinct} {columns} FROM {tableName} {condition};"
+        return queryString
+
+    def unionQuery(self,queryString1,queryString2):
+        unionQuery = f"{queryString1} UNION {queryString2}"
+        return unionQuery
+
+    def queryExecutor(self, queryString, order_column="", ASC="ASC", limit=""):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+
+        try:
+            self.cursor = self.conn.cursor()
+            if order_column:
+                queryString += f" ORDER BY {order_column} {ASC}"
+            if limit:
+                queryString += f" LIMIT {limit}"
+
+            self.cursor.execute(queryString)
+            tables = self.cursor.fetchall()
+            self.cursor.close()
+            self.conn.close()
+            return tables
+
+        except mysql.connector.Error as err:
+            print(f"Error occurred during query execution: {err}")
+            return None
+
+    def getStudentAnswer(self, studentName):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("answers", "question,answer", "DISTINCT", condition=f"name = '{studentName}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+
+    def getQuestionLabel(self, question):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("Tag", "label", condition=f"question = '{question}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+    
+    def updateData(self, tableName, colDTList, condition=""):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        if condition != "":
+            condition = f"WHERE {condition}"
+        columns, datas = self.convertListToString(colDTList)
+        self.cursor.execute(f"UPDATE {tableName} SET {columns} = {datas} {condition};")
+
+        self.cursor.close()
+        self.conn.close()
+        
+    def update_labels(db_connection, question, labels):
+        cursor = db_connection.cursor()
+
+        try:
+            for label in labels:
+                query = "UPDATE tag SET label = %s WHERE question = %s AND label IS NULL"
+                cursor.execute(query, (label, question))
+            db_connection.commit()
+            print(f"Labels updated for question: '{question}'")
+        except mysql.connector.Error as err:
+            print(f"Error occurred: {err}")
+        finally:
+            cursor.close()
+
+    def deleteData(self, tableName, condition):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"DELETE FROM {tableName} WHERE {condition};")
+
+        self.cursor.close()
+        self.conn.close()
+        
+    def getRubrics(self, question):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("exam", "rubric", condition=f"question = '{question}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+    
+    def getquestions(self):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("exam", "question", distinct="DISTINCT")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+    
+    def getLabels(self, question):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("tag", "label", condition=f"question = '{question}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+
+    def getAnswers(self, studentName):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        col = ["question", "answer"]
+        query = self.queryGenerate("answers", col, condition=f"name = '{studentName}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+    
+    
+    def getHighlightsForAnswer(self, answer):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        try:
+            query = """
+                SELECT rubric, AVG(confidence) as avg_confidence
+                FROM highlights
+                WHERE answer = %s
+                GROUP BY rubric
+            """
+            self.cursor.execute(query, (answer,))
+            rubrics_with_confidence = self.cursor.fetchall()
+            return rubrics_with_confidence
+        except mysql.connector.Error as err:
+            print(f"Error occurred during query execution: {err}")
+            return []
+        finally:
+            self.cursor.close()
+            self.conn.close()
+
+    
+    def getHighlights(self, rubric, answer):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        query = self.queryGenerate("highlights", "startIndex,endIndex,confidence", condition=f"rubric = '{rubric}' AND answer = '{answer}'")
+        self.cursor.execute(query)
+        table = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return table
+    
+    def insertHighlights(self, rubric, answer, startIndex, endIndex, confidence):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+        
+        try:
+            query = "INSERT INTO highlights (rubric, answer, startIndex, endIndex, confidence) VALUES (%s, %s, %s, %s, %s)"
+            data = (rubric, answer, startIndex, endIndex, confidence)
+            self.cursor.execute(query, data)
+            self.conn.commit()
+
+        except mysql.connector.Error as err:
+            print(f"Error occurred during insert operation: {err}")
+
+        finally:
+            self.cursor.close()
+            self.conn.close()
+
+    def insertLabels(self, question):
+        labels = generateLabels(question, self.list, self.label_threshold)
+        print(f"Labels: {labels}")
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+
+        print(self.conn)
+        if self.conn is None:
+            return
+        self.cursor = self.conn.cursor()
+
+        for label in labels:
+            label = f"'{label}'"
+            col = ["question", "label"]
+            data = [f"'{question}'", label]
+            colDT = [col, data]
+            columns, datas = self.convertListToString(colDT)
+            self.cursor.execute(f"INSERT INTO tag ({columns}) VALUES ({datas});")
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+        
+    def getUniqueStudentsForQuestion(self, question):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        try:
+            query = self.queryGenerate("answers", "name", distinct="DISTINCT", condition=f"question = '{question}'")
+            self.cursor.execute(query)
+            students = self.cursor.fetchall()
+            return students
+        except mysql.connector.Error as err:
+            print(f"Error occurred during query execution: {err}")
+            return None
+        finally:
+            self.cursor.close()
+            self.conn.close()
+            
+    def checkHighlightsExist(self, rubric, answer):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        try:
+            query = "SELECT * FROM highlights WHERE rubric = %s AND answer = %s"
+            self.cursor.execute(query, (rubric, answer))
+            result = self.cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print(f"Error occurred during query execution: {err}")
+            return None
+        finally:
+            self.cursor.close()
+            self.conn.close()
+
+    def checkLabelsExist(self, question):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return None
+        self.cursor = self.conn.cursor()
+
+        try:
+            query = "SELECT * FROM Tag WHERE question = %s"
+            self.cursor.execute(query, (question,))
+            result = self.cursor.fetchall()
+            return len(result) > 0
+        except mysql.connector.Error as err:
+            print(f"Error occurred during query execution: {err}")
+            return False
+        finally:
+            self.cursor.close()
+            self.conn.close()
+            
+    #######################################################################################
+        
 
     def save_hashmap_to_cache(self, cache_file):
         with open(cache_file, 'wb') as f:
@@ -31,7 +427,7 @@ class roundUsing:
                 ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
                     start,end = self.bert.get_highlight_indices(Answer,start.item(),end.item())
-                    end = end +1
+                    end = end - 4
                     print(f"startChar: {start}")
                     print(f"endChar: {end}")
                 else:
@@ -55,7 +451,7 @@ class roundUsing:
                 self.add(Question,Answer,Rubric)
         else:
             self.hashmap[Question] = {}
-            self.hashmap[Question]['Lable'] = getLabels(Question,self.list,self.threshHold)
+            self.hashmap[Question]['Lable'] = generateLabels(Question,self.list,self.threshHold)
             self.add(Question,Answer,Rubric)
     
     def remove(self,Question,Answer="",Rubric=""):
@@ -91,6 +487,8 @@ def print3DHashmap(hashmap):
                     print(f"inner_element: {element}")
             else:
                 print(inner_dict)
+                
+
 
 def init_hashmap(file_path, round_instance, cache_file='hashmap_cache.pkl'):
     if os.path.exists(cache_file):
@@ -110,16 +508,17 @@ def read_labelPredictionForm(file_path):
         list = next(csvreader)
     return list
 
-def getLabels(question,list,threshHold):
+def generateLabels(question,list,threshHold):
     classifier = pipeline("zero-shot-classification", model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli")
     labels = lm.classify_sentence(question, list, classifier, threshHold, True)[0][:3]
     return labels
+
         
 
 
 def main():
     # Create an instance of the RoundUsing class
-    round_instance = roundUsing()
+    round_instance = roundUsing(password="password")
 
     # three_d_nested_hashmap = {
     #     'outer_key1': {
@@ -167,6 +566,7 @@ def main():
     ]
     rubrics = ["When did the war start?", "Which countries were in the Allies?"]
 
+    
     ######## simple answer and rubrics test cases
     # questions = ["What are the pros and cons of online education?"]
     # answers = ["Convenience and flexibility","Interaction challenges"]
@@ -186,11 +586,68 @@ def main():
     #             round_instance.add(Question=q, Rubric=r, Answer=a)
 
     #######################################init hashmap test##################################
-    init_hashmap("data\QARtest.csv",round_instance)
-    init_hashmap("data\QARtest.csv",round_instance)
+    # init_hashmap("data\QARtest.csv",round_instance)
+    # init_hashmap("data\QARtest.csv",round_instance)
 
-    print3DHashmap(round_instance.getHashmap())
- 
+    # print3DHashmap(round_instance.getHashmap())
+
+    #######################################Database###########################################
+    round_instance.createDB("exam1")
+    round_instance.changeDatabase("exam1")
+
+    # cols = ["name","question","answer"]
+    # datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("answers",colDT)
+
+    # cols = ["question","rubric"]
+    # datatype = ["LONGTEXT","TEXT"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("exam",colDT)
+
+    # cols = ["question","label"]
+    # datatype = ["LONGTEXT","VARCHAR(50)"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("Tag",colDT)
+
+    # cols = ["name","accountName","password"]
+    # datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("account",colDT)
+
+    # cols = ["rubric","answer","startIndex","endIndex"]
+    # datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER"]
+    # colDT = [cols,datatype]
+    # round_instance.createTable("highlights",colDT)
+    
+    # cols = ["name","question","answer"]
+    # data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, 
+    #     including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi 
+    #     Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to 
+    #     declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of 
+    #     Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human 
+    #     suffering and significant changes in the political landscape, leading to the Cold War and the establishment 
+    #     of the United Nations.'"""]
+    # col_data = [cols,data]
+    # round_instance.insertData("answers",colDTList=col_data)
+    
+    # cols = ["question","rubric"]
+    # data = ["'Describe World War Two.'","'When did the war start?'"]
+    # col_data = [cols,data]
+    # round_instance.insertData("exam",colDTList=col_data)
+
+    # round_instance.insertLabels("'Describe World War Two.'")
+    
+
+    tables = round_instance.queryExecutor(queryString=round_instance.unionQuery(queryString1=round_instance.queryGenerate("answers","*",distinct="DISTINCT",condition="question = 'Describe World War Two.'"),queryString2=round_instance.queryGenerate("exam","*",condition="question = 'Describe World War Two.")))
+    for each in tables:
+        for each1 in each:
+            print(each1)
+
+    # round_instance.conn.commit()
+    # round_instance.cursor.close()
+    # round_instance.conn.close()
  
 if __name__ == "__main__":
     main()
+    

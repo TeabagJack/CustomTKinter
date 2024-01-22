@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "learning-semantic-search",
+    "private_key_id": "e570fed41c8ad05be702a2a1f6d5569056cc3eb1",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDT/oxrZsF8rn75\nSELbtHva+PqV5z9pbpXrGpmqsViF5JwLCAqyTzkKpUIrWgiOY6aqGdRa/EIObIfg\nvA9cy5gjQJraKrGGRcH2fG5RbyAC2ve4ifK3zo08TL+n+Q4gZceBEFJ+zoKb6zAc\nDod77De4W1LXrWID5NvJW/HOaXuHR/26tVnSS9PRZpcSRakhSCFaQhK/DoxLDgyD\nbrDcbQUgDR06HlvE29PmbS4ug1nt/KFxOG/Z7275qs0mPUq8ifEHn66wjJsFDx4B\nD6v7fh5jKFatQxhB2SW34UvK3twFw6bfPVwiXOJti4UXidAG70HAnipLNpuQqMTZ\n6ey/cBl9AgMBAAECggEAIYisWq2UTBjoMfOZy9pBa1J42m824IJ4iYpEJjRL01Dl\n1CLkr5mzkA5d01tjFhmyT/RVBe14X4K7KF68iV+/7vegZy6wtT43So/FUvFinWuu\nGuK2DRhJzsY53PlwdXR+z1jZy9WhOHEcGPFoF2oMKF1IffXJwYxEA2vyv0V/9QEx\nlq90x+RV7q03xaVlhMHKDvxVUf+YoMDvu26Aq4pPlBbjZsZ3QfD5cZQSBZoBFlws\n/ilTmw6sFfsOiDCsgHk+DtNQ09nGXipGmvr6DCvp0Yj5TyTJJaKzuJZGQBUdIS2O\nh1hLj+q0Dy1iK2WKux/DJXpFAq6z9ssBln0pALdcKwKBgQD6BoD+5zuwtIMsvdj5\nGK9lh9AVrvg9vqv6+SWzcwMIB5lcpcWu6kuR+ADDbke0GXdo06ExEbpPMC0CN2Dm\nXGKEERWVhE63H9eHq53QqqvmYWIXU5EHpAtbWztIlzL9VMBOMZ1Ahkwexz9i6nG/\nnbKjqfSCqnbcnkD11I91Qr1VCwKBgQDZD2UNhbYYJfnnnV75ZWTJL+gyJ8ATbiGU\ng02gMchf/FOMFoqQldvTDrcAzw6b9s5KZj5McNdNsZ3qVGTdFcs+6j++n6BvXHHz\nA0TUkx0RI78OnRRT+te+6cRxnfIpHuB1+NX0qWf2xgXFdpyIW9cjdr/qtwBavxVm\nKEoaXD7QlwKBgEudI+3zKI4sSW+Citfqq0DdbgTgwZqKy6A/MTOwGL6Y7byjNcHM\ngcZHZpO0CmNhQEenmRwp7Fp+i14cOWXxkqm2MPzi4ptnOduB/1xYAVzPHsdHMplI\n91ZNpQQzFeyfcPk08AXPl73HLFhR5sy4eIoeoB/URdY61hKCklA4OuI5AoGBAMdz\nOeve/Z/a5XNKS8bmwGGNv9K2a+xuujR5Io8cr35joXGMFO8ehMu/LbF0kXwGoTAE\nGyKqXWxq1SxJOBVevU+md8R1cTpiu+INEuYx9/eT3S9UbyVrzWsD6xprg+T9FkvQ\nxuj18S30b8EuaE9z9JAFwfuvBIheJQ+l3dGzCZUpAoGBAOqStlFv2YCQ0m/HPNmM\nLCJTmibKr7JruialgaVAbuSFFfVFudyhpOK66wuYft4LpSD7K6CmQVZIIL8F45zj\n7IVnFqESpAH0f0pShZAHiCHBgiTdRCUCs63E2V+aEI63WDCrIr28T9IX/TQ9FDsT\n7FutnF+VXQq9x0cevKCho6hQ\n-----END PRIVATE KEY-----\n",
+    "client_email": "collin-s-service-account@learning-semantic-search.iam.gserviceaccount.com",
+    "client_id": "111834288407550623213",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/collin-s-service-account%40learning-semantic-search.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
