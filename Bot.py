@@ -12,8 +12,8 @@ def get_start_and_end_indices(student_answer: str, subtexts: list[str]):
     for subtext in subtexts:
         start_index = student_answer.find(subtext)
         indices.append([
-            start_index,
-            start_index + len(subtext)
+            start_index+1,
+            start_index + len(subtext)+1
         ])
     return indices
 

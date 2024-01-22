@@ -18,6 +18,7 @@ LOGO_IMAGE_PATH = 'data/ans_logo.png'
 USER_ICON_PATH = ''  # Update with actual path
 creds_path = 'learningsemanticsearch.json'
 
+
 class ExamAIApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -26,63 +27,70 @@ class ExamAIApp(ctk.CTk):
         ctk.set_appearance_mode(APPEARANCE_MODE)
         ctk.set_default_color_theme(COLOR_THEME)
         
+        self.default_font = ('Segoe UI', 10)
+        self.primary_color = '#1B0166'
+        self.secondary_color = '#C6BFD9'
+        self.text_color = 'black'
+        self.highlight_color = '#FFD700'
+        
         #################### Start Database ####################
         self.round_instance = roundUsing(password="password")
-        print("step 1")
+        # print("step 1")
         self.round_instance.connect_to_db()
-        print("step 2")
-        self.round_instance.createDB("exam1")
-        print("step 3")
+        # print("step 2")
+        # self.round_instance.createDB("exam1")
+        # print("step 3")
         self.round_instance.changeDatabase("exam1")
-        print("step 4")
+        # print("step 4")
         
-        cols = ["name","question","answer"]
-        datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
-        colDT = [cols,datatype]
-        self.round_instance.createTable("answers",colDT)
+        # cols = ["name","question","answer"]
+        # datatype = ["VARCHAR(50)","LONGTEXT","LONGTEXT"]
+        # colDT = [cols,datatype]
+        # self.round_instance.createTable("answers",colDT)
 
-        cols = ["question","rubric"]
-        datatype = ["LONGTEXT","TEXT"]
-        colDT = [cols,datatype]
-        self.round_instance.createTable("exam",colDT)
+        # cols = ["question","rubric"]
+        # datatype = ["LONGTEXT","TEXT"]
+        # colDT = [cols,datatype]
+        # self.round_instance.createTable("exam",colDT)
 
-        cols = ["question","label"]
-        datatype = ["LONGTEXT","VARCHAR(50)"]
-        colDT = [cols,datatype]
-        self.round_instance.createTable("tag",colDT)
+        # cols = ["question","label"]
+        # datatype = ["LONGTEXT","VARCHAR(50)"]
+        # colDT = [cols,datatype]
+        # self.round_instance.createTable("tag",colDT)
 
-        cols = ["name","accountName","password"]
-        datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
-        colDT = [cols,datatype]
-        self.round_instance.createTable("account",colDT)
+        # cols = ["name","accountName","password"]
+        # datatype = ["VARCHAR(50)","VARCHAR(50)","VARCHAR(50)"]
+        # colDT = [cols,datatype]
+        # self.round_instance.createTable("account",colDT)
 
-        cols = ["rubric","answer","startIndex","endIndex", "confidence"]
-        datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER", "DOUBLE"]
-        colDT = [cols,datatype]
-        self.round_instance.createTable("highlights",colDT)
+        # cols = ["rubric","answer","startIndex","endIndex", "confidence"]
+        # datatype = ["TEXT","LONGTEXT","INTEGER","INTEGER", "DOUBLE"]
+        # colDT = [cols,datatype]
+        # self.round_instance.createTable("highlights",colDT)
         
-        cols = ["name","question","answer"]
-        data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human suffering and significant changes in the political landscape, leading to the Cold War and the establishment of the United Nations.'"""]
-        col_data = [cols,data]
-        self.round_instance.insertData("answers",colDTList=col_data)
+        # cols = ["name","question","answer"]
+        # data = ["'student1'","'Describe World War Two.'","""'World War II, which started November 1 1939, was a global conflict primarily involving the Allies, including the United States, the Soviet Union, and the United Kingdom, against the Axis powers, notably Nazi Germany, Italy, and Japan. The war began with Germany''s invasion of Poland, prompting Britain and France to declare war on Germany. This conflict was marked by significant events like the Holocaust, the bombing of Pearl Harbor, and the use of atomic bombs on Hiroshima and Nagasaki. The war resulted in immense human suffering and significant changes in the political landscape, leading to the Cold War and the establishment of the United Nations.'"""]
+        # col_data = [cols,data]
+        # self.round_instance.insertData("answers",colDTList=col_data)
         
-        cols = ["question","rubric"]
-        data = ["'Describe World War Two.'","'When did the war start?'"]
-        col_data = [cols,data]
-        self.round_instance.insertData("exam",colDTList=col_data)
+        # cols = ["question","rubric"]
+        # data = ["'Describe World War Two.'","'When did the war start?'"]
+        # col_data = [cols,data]
+        # self.round_instance.insertData("exam",colDTList=col_data)
 
-        self.round_instance.insertLabels("Describe World War Two.")
+        # self.round_instance.insertLabels("Describe World War Two.")
         
-        
-
-        tables = self.round_instance.queryExecutor(queryString=self.round_instance.unionQuery(queryString1=self.round_instance.queryGenerate("answers","*",distinct="DISTINCT",condition="question = 'Describe World War Two.'"),queryString2=self.round_instance.queryGenerate("exam","*",condition="question = 'Describe World War Two.")))
-        for each in tables:
-            for each1 in each:
-                print(each1)
 
         
-        self.round_instance.cursor.close()
-        self.round_instance.conn.close()
+
+        # tables = self.round_instance.queryExecutor(queryString=self.round_instance.unionQuery(queryString1=self.round_instance.queryGenerate("answers","*",distinct="DISTINCT",condition="question = 'Describe World War Two.'"),queryString2=self.round_instance.queryGenerate("exam","*",condition="question = 'Describe World War Two.")))
+        # for each in tables:
+        #     for each1 in each:
+        #         print(each1)
+
+        
+        # self.round_instance.cursor.close()
+        # self.round_instance.conn.close()
         self.round_instance.close_connection() 
 
     ####################################### END Database###########################################
@@ -124,7 +132,8 @@ class ExamAIApp(ctk.CTk):
         user_icon_label = ctk.CTkLabel(self.top_frame, image=user_icon,text='')
         user_icon_label.pack(side='right', padx=10, pady=10)
 
-        user_details = ctk.CTkLabel(self.top_frame, text="Teacher Name\nProofs Teacher", font=("Arial", 10), anchor='e')
+        user_details = ctk.CTkLabel(self.top_frame, text="Teacher Name\nProofs Teacher",
+                                    font=self.default_font, text_color=self.text_color, anchor='e')
         user_details.pack(side='right', padx=10, pady=10)
         
     def create_main_frame(self):
@@ -135,7 +144,8 @@ class ExamAIApp(ctk.CTk):
         self.side_menu = ctk.CTkFrame(self.main_frame, corner_radius=10, fg_color='white', border_color='grey', border_width=2, width=200)
         self.side_menu.pack(side='left', fill='y',padx=10, pady=10)
 
-        self.rubric_title = ctk.CTkLabel(self.side_menu, text="Rubrics", font=("Arial", 20, "bold"), text_color='#1B0166')
+        self.rubric_title = ctk.CTkLabel(self.side_menu, text="Rubrics", font=("Arial", 20, "bold"),
+                                         text_color=self.primary_color)
         self.rubric_title.pack(padx=10, pady=(10, 5)) 
 
         search_var = tk.StringVar()
@@ -154,7 +164,8 @@ class ExamAIApp(ctk.CTk):
         self.label_menu = ctk.CTkFrame(self.main_frame, corner_radius=10, fg_color='white', border_color='grey', border_width=2, width=label_menu_width)
         self.label_menu.pack(side='right', fill='both', padx=10, pady=10)
         
-        self.label_title = ctk.CTkLabel(self.label_menu, text="Labels", font=("Arial", 20, "bold"), text_color='#1B0166')
+        self.label_title = ctk.CTkLabel(self.label_menu, text="Labels", font=("Arial", 20, "bold"),
+                                        text_color=self.primary_color)
         self.label_title.pack(padx=10, pady=(10, 5))
         
         self.label_frame = ctk.CTkFrame(self.label_menu, corner_radius=10, fg_color='white', border_color='grey', border_width=1, width=200)
@@ -178,10 +189,12 @@ class ExamAIApp(ctk.CTk):
         self.box_frame_right = ctk.CTkFrame(self.box_frame, corner_radius=10, bg_color='transparent', fg_color='white')
         self.box_frame_right.pack(side='right', padx=0, pady=0, anchor='ne')
 
-        self.bold_text = ctk.CTkLabel(self.box_frame_left, font=("Arial", 12, "bold"), anchor='w')
+        self.bold_text = ctk.CTkLabel(self.box_frame_left, font=("Arial", 12, "bold"),
+                                      text_color=self.text_color, anchor='w')
         self.bold_text.pack(padx=10, pady=10, anchor='nw')
 
-        self.large_color_text = ctk.CTkLabel(self.box_frame_left, text_color="black", font=("Arial", 20))
+        self.large_color_text = ctk.CTkLabel(self.box_frame_left, text_color=self.text_color,
+                                             font=("Arial", 20))
         self.large_color_text.pack(pady=10, anchor='nw', padx=20)
 
         self.show_labels_button = ctk.CTkButton(self.box_frame_right, text="Hide Labels", command=self.hide_labels_task, fg_color='#1B0166')
@@ -266,21 +279,18 @@ class ExamAIApp(ctk.CTk):
     def student_button_action(self, student_index):
         self.current_student_index = student_index
         student_answer = self.get_student_answer(student_index)
-        self.rubric_to_answer_mapping = self.calculate_rubric_to_answer_mapping(student_answer)
+        self.highlight_insertion()  # Insert highlights for this student's answer
         self.display_student_answer(student_answer)
         self.display_rubrics_with_confidence(student_answer)
 
-
-        
+            
 #################### End Question Buttons ####################        
 #################### Rubrics and Labels ####################
 
     def confidence_to_color(self, confidence):
         confidence = max(0.0, min(1.0, confidence)) 
-
         yellow_red = 255
         yellow_green = 255
-
         if confidence < 0.5:
             red = 255
             green = int((confidence / 0.5) * yellow_green)
@@ -289,9 +299,7 @@ class ExamAIApp(ctk.CTk):
             red = int(((1.0 - confidence) / 0.5) * yellow_red)
             green = 255
             blue = 0
-
         return f'#{red:02x}{green:02x}{blue:02x}'
-
 
     def display_rubrics_with_confidence(self, student_answer):
         for widget in self.rubric_frame.winfo_children():
@@ -303,10 +311,8 @@ class ExamAIApp(ctk.CTk):
             canvas = tk.Canvas(self.rubric_frame, width=20, height=20, bg=color, highlightthickness=0)
             canvas.create_oval(5, 5, 15, 15, fill=color, outline=color)
             canvas.grid(row=index, column=0, padx=(5, 5), pady=5, sticky="w")
-
             rubric_label = ctk.CTkLabel(self.rubric_frame, text=rubric, width=200)
             rubric_label.grid(row=index, column=1, sticky="w")
-
             rubric_label.bind("<Button-1>", lambda event, r=rubric: self.on_rubric_label_click(r, student_answer))
             
     def on_rubric_label_click(self, rubric, student_answer):
@@ -316,14 +322,15 @@ class ExamAIApp(ctk.CTk):
                 start_index, end_index = highlight[0], highlight[1]
                 print(f"Highlighting from {start_index} to {end_index}")
                 self.highlight_text(start_index, end_index)
+                print(student_answer[start_index:end_index])
+                print(len(student_answer))
         else:
             print(f"No highlights found for rubric '{rubric}'")
 
 
     def highlight_text(self, start_index, end_index):
-        print(f"Highlighting text from {start_index} to {end_index}")
         self.answer_text.tag_remove("highlight", "1.0", "end")
-        self.answer_text.tag_config("highlight", background="yellow", foreground="black")
+        self.answer_text.tag_config("highlight", background=self.highlight_color, foreground="black")
         self.answer_text.tag_add("highlight", f"1.{start_index}", f"1.{end_index}")
 
     
@@ -342,12 +349,6 @@ class ExamAIApp(ctk.CTk):
                 self.round_instance.insertHighlights(rubric_text, student_answer, indices[0][0], indices[0][1], 0.5)
                 print(f"Highlights added for '{rubric_text}': {indices}")
     
-    def calculate_rubric_to_answer_mapping(self, student_answer):
-        mapping = {
-            "Rubric1": (0, 10), 
-            "Rubric2": (11, 20),
-        }
-        return mapping
 
     
 #################### End Rubrics and Labels ####################

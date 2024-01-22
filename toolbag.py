@@ -300,8 +300,8 @@ class roundUsing:
             return None
         self.cursor = self.conn.cursor()
 
-        query = self.queryGenerate("highlights", "startIndex,endIndex,confidence", condition=f"rubric = '{rubric}' AND answer = '{answer}'")
-        self.cursor.execute(query)
+        query = "SELECT startIndex, endIndex, confidence FROM highlights WHERE rubric = %s AND answer = %s"
+        self.cursor.execute(query, (rubric, answer))
         table = self.cursor.fetchall()
 
         self.cursor.close()
