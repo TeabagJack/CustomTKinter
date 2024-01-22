@@ -23,8 +23,64 @@ class roundUsing:
             password=self.password
         )
         self.cursor = self.conn.cursor()
+    
+    def initialize_database(self):
+        self.createDB(self.database)
+        self.changeDatabase(self.database)
+        self.create_tables()
+        
+    def create_tables(self):
+        table_schemas = {
+            "answers": ["name VARCHAR(50)", "question LONGTEXT", "answer LONGTEXT"],
+            "exam": ["question LONGTEXT", "rubric TEXT"],
+            "tag": ["question LONGTEXT", "label VARCHAR(50)"],
+            "account": ["name VARCHAR(50)", "accountName VARCHAR(50)", "password VARCHAR(50)"],
+            "highlights": ["rubric TEXT", "answer LONGTEXT", "startIndex INTEGER", "endIndex INTEGER", "confidence FLOAT"]
+        }
+        
+        for table_name, columns in table_schemas.items():
+            self.createTable(table_name, columns)
+            
+    
+    def createTable(self, tableName, columns):
+        column_definitions = ", ".join(columns)
+        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {tableName} ({column_definitions});")
+        
+    def simplified_insert(self, table_name, data):
+        self.connect_to_db()
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("USE exam1;")  # Explicitly select the database
+
+        # Construct and execute the insert query
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['%s'] * len(data))
+        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+        self.cursor.execute(query, list(data.values()))
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+        
+    def execute_query(self, query, values=None):
+        try:
+            self.connect_to_db()
+            self.cursor = self.conn.cursor()
+
+            if values:
+                self.cursor.execute(query, values)
+            else:
+                self.cursor.execute(query)
+
+            self.conn.commit()
+        except mysql.connector.Error as err:
+            print(f"Error occurred: {err}")
+        finally:
+            if self.cursor:
+                self.cursor.close()
+            if self.conn:
+                self.conn.close()
         
         
+    
     def connect_to_db(self):
         if self.conn is None or not self.conn.is_connected():
             try:
@@ -63,28 +119,33 @@ class roundUsing:
         # cursor.close()
         # conn.close()
 
-    def convertListToString(self,colDTList):
+    def convertListToString(colDTList):
         cols = colDTList[0]
-        dts = colDTList[1]
+        dts1 = colDTList[1]
+        dts  = []
+        for each in dts1:
+            each = each.replace("'", "''")
+            each = f"'{each}'"
+            dts.append(each)
         columns = ",".join(cols)
         datas = ",".join(dts)
         return columns,datas
 
-    def createTable(self, tableName, colDTList):
-        # conn = self.connect_to_db()
-        # if conn is None:
-        #     return
-        # cursor = conn.cursor()
+    # def createTable(self, tableName, colDTList):
+    #     # conn = self.connect_to_db()
+    #     # if conn is None:
+    #     #     return
+    #     # cursor = conn.cursor()
 
-        colDT = []
-        for element1, element2 in zip(colDTList[0], colDTList[1]):
-            newlist = f"{element1} {element2}"
-            colDT.append(newlist)
-        colDT = ", ".join(colDT)
-        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {tableName} ({colDT});")
+    #     colDT = []
+    #     for element1, element2 in zip(colDTList[0], colDTList[1]):
+    #         newlist = f"{element1} {element2}"
+    #         colDT.append(newlist)
+    #     colDT = ", ".join(colDT)
+    #     self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {tableName} ({colDT});")
 
-        # cursor.close()
-        # conn.close()
+    #     # cursor.close()
+    #     # conn.close()
     
     def dropTable(self,tableName):
         self.cursor.execute(f"DROP TABLE IF EXISTS {tableName};")

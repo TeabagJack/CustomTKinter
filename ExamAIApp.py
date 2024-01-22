@@ -34,13 +34,26 @@ class ExamAIApp(ctk.CTk):
         self.highlight_color = '#FFD700'
         
         #################### Start Database ####################
+        
         self.round_instance = roundUsing(password="password")
+        self.round_instance.initialize_database()
+        
+        q = "q2"
+        n = "student2"
+        a = "answer2"
+        r = "r2"
+        self.insert_values_into_database(q,n,a,r)
+        
+    
+        
+        
+        # self.round_instance = roundUsing(password="password")
         # print("step 1")
-        self.round_instance.connect_to_db()
+        # self.round_instance.connect_to_db()
         # print("step 2")
         # self.round_instance.createDB("exam1")
         # print("step 3")
-        self.round_instance.changeDatabase("exam1")
+        # self.round_instance.changeDatabase("exam1")
         # print("step 4")
         
         # cols = ["name","question","answer"]
@@ -91,7 +104,7 @@ class ExamAIApp(ctk.CTk):
         
         # self.round_instance.cursor.close()
         # self.round_instance.conn.close()
-        self.round_instance.close_connection() 
+        # self.round_instance.close_connection() 
 
     ####################################### END Database###########################################
     
@@ -115,6 +128,20 @@ class ExamAIApp(ctk.CTk):
         self.create_top_content_frame()
         self.create_content()
         self.create_questions_frame()
+        
+    def insert_values_into_database(self, question, name, answer,rubric,):
+        self.round_instance.simplified_insert("answers", {
+            "name": name,
+            "question": question,
+            "answer": answer
+        })
+        self.round_instance.simplified_insert("exam", {
+            "question": question,
+            "rubric": rubric
+        })
+        self.round_instance.simplified_insert("tag", {
+            "question": question
+        })
 
     def create_base_frame(self):
         self.base_frame = ctk.CTkFrame(self, corner_radius=10, fg_color='white')
