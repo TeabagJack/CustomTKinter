@@ -38,10 +38,10 @@ class ExamAIApp(ctk.CTk):
         self.round_instance = roundUsing(password="password")
         self.round_instance.initialize_database()
         
-        q = "q2"
-        n = "student2"
-        a = "answer2"
-        r = "r2"
+        q = "q3"
+        n = "student3"
+        a = "answer3"
+        r = "r3"
         self.insert_values_into_database(q,n,a,r)
         
     
@@ -366,6 +366,7 @@ class ExamAIApp(ctk.CTk):
         for rubric in rubrics:
             rubric_text = rubric[0]
             student_answer = self.get_student_answer(self.current_student_index)
+            print(f"Checking highlights for '{rubric_text}' in '{student_answer}'")
 
             existing_highlights = self.round_instance.checkHighlightsExist(rubric_text, student_answer)
             if existing_highlights:
@@ -497,15 +498,24 @@ class ExamAIApp(ctk.CTk):
         for label in labels:
             label_label = ctk.CTkLabel(self.label_frame, text=label, width=200)
             label_label.pack()
+            
+    def get_all_student_names(self):
+        # Assuming you have a method in roundUsing class to fetch all student names
+        return self.round_instance.getAllStudentNames()
 
     def get_student_answer(self, student_index):
-        student_name = "Student" + str(student_index + 1)
-        answer_data = self.round_instance.getStudentAnswer(student_name)
+        all_student_names = self.get_all_student_names()
+        if student_index < len(all_student_names):
+            student_name = all_student_names[student_index]
+            answer_data = self.round_instance.getStudentAnswer(student_name)
 
-        if answer_data:
-            return answer_data[0][1]
+            if answer_data:
+                return answer_data[0][1]
+            else:
+                return "No answer found"
         else:
-            return "No answer found"
+            return "Invalid student index"
+        
 
 def main():
     app = ExamAIApp()

@@ -23,6 +23,22 @@ class roundUsing:
             password=self.password
         )
         self.cursor = self.conn.cursor()
+        
+        
+    def getAllStudentNames(self):
+        self.conn = self.connect_to_db()
+        self.changeDatabase("exam1")
+        if self.conn is None:
+            return []
+        self.cursor = self.conn.cursor()
+
+        query = "SELECT DISTINCT name FROM answers"
+        self.cursor.execute(query)
+        names = self.cursor.fetchall()
+
+        self.cursor.close()
+        self.conn.close()
+        return [name[0] for name in names]
     
     def initialize_database(self):
         self.createDB(self.database)
@@ -119,7 +135,7 @@ class roundUsing:
         # cursor.close()
         # conn.close()
 
-    def convertListToString(colDTList):
+    def convertListToString(self, colDTList):
         cols = colDTList[0]
         dts1 = colDTList[1]
         dts  = []
@@ -389,13 +405,9 @@ class roundUsing:
             self.cursor.close()
             self.conn.close()
 
-    def insertLabels(self, question):
-        labels = generateLabels(question, self.list, self.label_threshold)
-        print(f"Labels: {labels}")
+    def insertLabels(self, question, labels):
         self.conn = self.connect_to_db()
         self.changeDatabase("exam1")
-
-        print(self.conn)
         if self.conn is None:
             return
         self.cursor = self.conn.cursor()
@@ -410,6 +422,7 @@ class roundUsing:
         self.conn.commit()
         self.cursor.close()
         self.conn.close()
+
         
     def getUniqueStudentsForQuestion(self, question):
         self.conn = self.connect_to_db()
