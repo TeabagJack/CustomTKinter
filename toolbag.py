@@ -47,7 +47,7 @@ class roundUsing:
         
     def create_tables(self):
         table_schemas = {
-            "answers": ["name VARCHAR(50)", "question LONGTEXT", "answer LONGTEXT"],
+            "answers": ["name VARCHAR(50)", "question LONGTEXT", "answer LONGTEXT", "rubric TEXT"],
             "exam": ["question LONGTEXT", "rubric TEXT"],
             "tag": ["question LONGTEXT", "label VARCHAR(50)"],
             "account": ["name VARCHAR(50)", "accountName VARCHAR(50)", "password VARCHAR(50)"],
@@ -65,9 +65,8 @@ class roundUsing:
     def simplified_insert(self, table_name, data):
         self.connect_to_db()
         self.cursor = self.conn.cursor()
-        self.cursor.execute("USE exam1;")  # Explicitly select the database
-
-        # Construct and execute the insert query
+        self.cursor.execute("USE exam1;")
+        
         columns = ', '.join(data.keys())
         placeholders = ', '.join(['%s'] * len(data))
         query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
@@ -212,20 +211,22 @@ class roundUsing:
             print(f"Error occurred during query execution: {err}")
             return None
 
-    def getStudentAnswer(self, studentName):
+    def getStudentAnswer(self, studentName, question):
         self.conn = self.connect_to_db()
         self.changeDatabase("exam1")
         if self.conn is None:
             return None
         self.cursor = self.conn.cursor()
-
-        query = self.queryGenerate("answers", "question,answer", "DISTINCT", condition=f"name = '{studentName}'")
+        question = question.replace("'", "''")
+        query = f"SELECT answer FROM answers WHERE name = '{studentName}' AND question = '{question}'"
         self.cursor.execute(query)
         table = self.cursor.fetchall()
 
         self.cursor.close()
         self.conn.close()
-        return table
+
+        return table[0][0] if table else None
+
 
     def getQuestionLabel(self, question):
         self.conn = self.connect_to_db()
@@ -233,7 +234,7 @@ class roundUsing:
         if self.conn is None:
             return None
         self.cursor = self.conn.cursor()
-
+        question = question.replace("'", "''")
         query = self.queryGenerate("Tag", "label", condition=f"question = '{question}'")
         self.cursor.execute(query)
         table = self.cursor.fetchall()
@@ -290,13 +291,18 @@ class roundUsing:
             return None
         self.cursor = self.conn.cursor()
 
-        query = self.queryGenerate("exam", "rubric", condition=f"question = '{question}'")
-        self.cursor.execute(query)
-        table = self.cursor.fetchall()
+        try:
+            query = f"SELECT DISTINCT rubric FROM exam WHERE question = %s"
+            self.cursor.execute(query, (question,))
+            rubrics = self.cursor.fetchall()
+            return rubrics
+        except mysql.connector.Error as err:
+            print(f"Error occurred: {err}")
+            return []
+        finally:
+            self.cursor.close()
+            self.conn.close()
 
-        self.cursor.close()
-        self.conn.close()
-        return table
     
     def getquestions(self):
         self.conn = self.connect_to_db()
@@ -314,19 +320,30 @@ class roundUsing:
         return table
     
     def getLabels(self, question):
-        self.conn = self.connect_to_db()
-        self.changeDatabase("exam1")
-        if self.conn is None:
+        try:
+            self.conn = self.connect_to_db()
+            self.changeDatabase("exam1")
+            if self.conn is None:
+                print("Connection to database failed")
+                return None
+            self.cursor = self.conn.cursor()
+
+            query = "SELECT DISTINCT label FROM tag WHERE question = %s"
+            print(f"Executing query: {query} with question: {question}")
+            self.cursor.execute(query, (question,))
+            table = self.cursor.fetchall()
+            print(f"Query result: {table}")
+
+            return table
+        except mysql.connector.Error as err:
+            print(f"Error occurred: {err}")
             return None
-        self.cursor = self.conn.cursor()
+        finally:
+            if self.cursor is not None:
+                self.cursor.close()
+            if self.conn is not None:
+                self.conn.close()
 
-        query = self.queryGenerate("tag", "label", condition=f"question = '{question}'")
-        self.cursor.execute(query)
-        table = self.cursor.fetchall()
-
-        self.cursor.close()
-        self.conn.close()
-        return table
 
     def getAnswers(self, studentName):
         self.conn = self.connect_to_db()
@@ -354,7 +371,7 @@ class roundUsing:
 
         try:
             query = """
-                SELECT rubric, AVG(confidence) as avg_confidence
+                SELECT DISTINCT rubric, AVG(confidence) as avg_confidence
                 FROM highlights
                 WHERE answer = %s
                 GROUP BY rubric
@@ -368,6 +385,7 @@ class roundUsing:
         finally:
             self.cursor.close()
             self.conn.close()
+
 
     
     def getHighlights(self, rubric, answer):
@@ -384,6 +402,7 @@ class roundUsing:
         self.cursor.close()
         self.conn.close()
         return table
+
     
     def insertHighlights(self, rubric, answer, startIndex, endIndex, confidence):
         self.conn = self.connect_to_db()
@@ -413,12 +432,13 @@ class roundUsing:
         self.cursor = self.conn.cursor()
 
         for label in labels:
-            label = f"'{label}'"
-            col = ["question", "label"]
-            data = [f"'{question}'", label]
-            colDT = [col, data]
-            columns, datas = self.convertListToString(colDT)
-            self.cursor.execute(f"INSERT INTO tag ({columns}) VALUES ({datas});")
+            if not self.checkLabelExists(question, label):
+                label = f"{label}"
+                col = ["question", "label"]
+                data = [f"{question}", label]
+                colDT = [col, data]
+                columns, datas = self.convertListToString(colDT)
+                self.cursor.execute(f"INSERT INTO tag ({columns}) VALUES ({datas});")
         self.conn.commit()
         self.cursor.close()
         self.conn.close()
@@ -430,8 +450,9 @@ class roundUsing:
         if self.conn is None:
             return None
         self.cursor = self.conn.cursor()
-
+        
         try:
+            question = question.replace("'", "''")
             query = self.queryGenerate("answers", "name", distinct="DISTINCT", condition=f"question = '{question}'")
             self.cursor.execute(query)
             students = self.cursor.fetchall()
@@ -462,24 +483,11 @@ class roundUsing:
             self.cursor.close()
             self.conn.close()
 
-    def checkLabelsExist(self, question):
-        self.conn = self.connect_to_db()
-        self.changeDatabase("exam1")
-        if self.conn is None:
-            return None
-        self.cursor = self.conn.cursor()
-
-        try:
-            query = "SELECT * FROM Tag WHERE question = %s"
-            self.cursor.execute(query, (question,))
-            result = self.cursor.fetchall()
-            return len(result) > 0
-        except mysql.connector.Error as err:
-            print(f"Error occurred during query execution: {err}")
-            return False
-        finally:
-            self.cursor.close()
-            self.conn.close()
+    def checkLabelExists(self, question, label):
+        query = "SELECT * FROM tag WHERE question = %s AND label = %s"
+        self.cursor.execute(query, (question, label))
+        result = self.cursor.fetchall()
+        return len(result) > 0
             
     #######################################################################################
         
@@ -498,7 +506,6 @@ class roundUsing:
                 extract, start, end = self.bert.get_model_output(
                     student_answer=Answer, requirement=Rubric
                     )
-                ##check the index is tensor format or not, in case some result is empty or No answer
                 if torch.is_tensor(start):
                     start,end = self.bert.get_highlight_indices(Answer,start.item(),end.item())
                     end = end - 4

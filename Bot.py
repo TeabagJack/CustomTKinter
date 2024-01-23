@@ -2,6 +2,20 @@ from google.oauth2 import service_account
 import google.ai.generativelanguage as glm
 from IPython.display import Markdown, display
 
+"""
+This class is the main class used for the Attributed Question and Answering task.
+You can find detailed documentation written by Google Developers on how to implement the AQA model with
+their Generative Language API at https://ai.google.dev/docs/semantic_retriever 
+
+I highly recommend reading the link above as it works great.
+
+To run the model, you need to acquire an API key by creating a Google service account and generating a service account
+key. You can see a detailed description on how to do that in the above link.
+
+Once you have the JSON file with your service account key, you create the bot by passing it the path to the JSON file in
+the constructor.
+"""
+
 
 def print_response_as_markdown(response: glm.GenerateAnswerResponse):
     display(Markdown(response.answer.content.parts[-1].text))
@@ -20,7 +34,7 @@ def get_start_and_end_indices(student_answer: str, subtexts: list[str]):
 
 class Bot:
     model = "models/aqa"
-    answer_style = "EXTRACTIVE"
+    answer_style = "VERBOSE"
     temperature = 0.2
 
     generative_service_client = None
@@ -142,8 +156,6 @@ class Bot:
                 )
             )
 
-        print('on est arriver ici')
-
         print(f'length of create request list = {len(create_chunks_requests)}')
         print(create_chunks_requests)
 
@@ -201,7 +213,7 @@ class Bot:
 
         request = glm.GenerateAnswerRequest(
             model=self.model,
-            contents=self.chat_history,
+            contents=[query_content],
             semantic_retriever=retriever_config,
             answer_style=self.answer_style,
             temperature=self.temperature
@@ -230,8 +242,6 @@ class Bot:
             ),
             chunks_passages=[x for x in student_answer.split(sep='.') if x != '']
         )
-        print(f'student answer = {student_answer}')
-        print(student_answer.split(sep='.'))
 
     def run_model(self, student_answer: str, rubric: str):
         # add student answer as a document
@@ -255,4 +265,4 @@ class Bot:
         return get_start_and_end_indices(
             student_answer=student_answer,
             subtexts=parts
-        )
+        ), response.answerable_probability
