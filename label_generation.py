@@ -1,5 +1,6 @@
 import openai
 
+# Replace your working API key here
 api_key = "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"
 
 def generate_tags_with_chat_model(sentence):
